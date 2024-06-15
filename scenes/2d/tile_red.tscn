@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://cj8ashotm7bxr"]
+
+[node name="tiles_red" type="Node2D"]
+
+[node name="ColorRect" type="ColorRect" parent="."]
+offset_right = 32.0
+offset_bottom = 32.0
+color = Color(1, 0, 0, 1)
