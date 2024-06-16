@@ -1,28 +1,15 @@
 extends Node
 
-var FLOOR_BLANK = preload("res://scenes/3d/floor_blank.tscn")
-var FLOOR_BLUE = preload("res://scenes/3d/floor_blue.tscn")
-var FLOOR_RED = preload("res://scenes/3d/floor_red.tscn")
-var FLOOR_GREEN = preload("res://scenes/3d/floor_green.tscn")
-var FLOOR_YELLOW = preload("res://scenes/3d/floor_yellow.tscn")
-var FLOOR_PURPLE = preload("res://scenes/3d/floor_purple.tscn")
-var FLOOR_ORANGE = preload("res://scenes/3d/floor_orange.tscn")
-var TILE_BLANK = preload("res://scenes/2d/tile_blank.tscn")
-var TILE_BLUE = preload("res://scenes/2d/tile_blue.tscn")
-var TILE_RED = preload("res://scenes/2d/tile_red.tscn")
-var TILE_GREEN = preload("res://scenes/2d/tile_green.tscn")
-var TILE_YELLOW = preload("res://scenes/2d/tile_yellow.tscn")
-var TILE_PURPLE = preload("res://scenes/2d/tile_purple.tscn")
-var TILE_ORANGE = preload("res://scenes/2d/tile_orange.tscn")
-var TILE_SIZE = 32
-var LEVEL = 0
+var COLOR_BLANK = "#9B9B9B"
+var COLOR_BLUE = "#163ee2"
+var COLOR_RED = "#e21616"
+var COLOR_GREEN = "#38e216"
+var COLOR_YELLOW = "#f5f10b"
+var COLOR_PURPLE = "#db25ee"
+var COLOR_ORANGE = "#fea500"
+var TILE_SIZE = 16
 
-
-# The position to start spawning tiles at
-var x = 0
-var y = 0
-
-var LEVEL_MATRIX = []
+var NODE_COUNTER = 0
 
 var LEVEL_0 = [
 	[0, 1, 2, 3],
@@ -38,41 +25,61 @@ var LEVEL_1 = [
 	[1, 1 ,1, 1, 0, 0],
 ]
 
-func tile_spawn_3d():
+func tile_spawn(LEVEL_MATRIX, x, y, MODE):
 	var CURRENT_TILE
+	var COLOR
+	var NAME
 	match LEVEL_MATRIX[y][x]:
 		0:
 			return
 		1:
-			CURRENT_TILE = FLOOR_BLANK.instantiate()
+			COLOR = COLOR_BLANK
+			NAME = "blank"
 		2:
-			CURRENT_TILE = FLOOR_BLUE.instantiate()
+			COLOR = COLOR_BLUE
+			NAME = "blue"
 		3:
-			CURRENT_TILE = FLOOR_RED.instantiate()
+			COLOR = COLOR_RED
+			NAME = "red"
 		4:
-			CURRENT_TILE = FLOOR_GREEN.instantiate()
+			COLOR = COLOR_GREEN
+			NAME = "green"
 		5:
-			CURRENT_TILE = FLOOR_YELLOW.instantiate()
+			COLOR = COLOR_YELLOW
+			NAME = "yellow"
 		6:
-			CURRENT_TILE = FLOOR_PURPLE.instantiate()
+			COLOR = COLOR_PURPLE
+			NAME = "purple"
 		7:
-			CURRENT_TILE = FLOOR_ORANGE.instantiate()
+			COLOR = COLOR_ORANGE
+			NAME = "orange"
 		_:
 			return
 	# add the tile if valid
-	CURRENT_TILE.position = Vector3(x, -0.5, y)
-	add_child(CURRENT_TILE)
+	NODE_COUNTER += 1
+	if MODE == "3d":
+		CURRENT_TILE = MeshInstance3D.new()
+		CURRENT_TILE.mesh = BoxMesh.new()
+		var material = StandardMaterial3D.new()
+		material.albedo_color = COLOR
+		CURRENT_TILE.mesh.surface_set_material(0, material)
+		CURRENT_TILE.position = Vector3(x, -0.5, y)
+	if MODE == "2d":
+		CURRENT_TILE = ColorRect.new()
+		CURRENT_TILE.size = Vector2(TILE_SIZE, TILE_SIZE)
+		CURRENT_TILE.position = Vector2(x * TILE_SIZE, y * TILE_SIZE)
+		CURRENT_TILE.color = COLOR
+	CURRENT_TILE.name = str(MODE, "_", NAME, "_", NODE_COUNTER)
+	self.add_child(CURRENT_TILE)
 
-
-# The function to loop through the FLOOR_MATRIX and spawn tiles
-func update_level(NEW_MATRIX):
-	LEVEL_MATRIX = NEW_MATRIX
+func update_tiles(LEVEL_MATRIX, x, y, MODE):
 	for row in LEVEL_MATRIX:
 		for cell in row:
-			tile_spawn_3d()
+			tile_spawn(LEVEL_MATRIX, x, y, MODE)
 			x += 1
 		x = 0
 		y += 1
+	NODE_COUNTER = 0
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
