@@ -18,7 +18,7 @@ sky = SubResource("Sky_a60fu")
 tonemap_mode = 2
 glow_enabled = true
 
-[node name="level_base" type="Node3D"]
+[node name="view_3d" type="Node3D"]
 script = ExtResource("1_wpaoh")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
