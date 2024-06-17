@@ -7,7 +7,7 @@ var cube_size = 1.0
 var speed = 6.0
 var rolling = false
 	
-func _physics_process(delta):
+func _physics_process(_delta):
 	var forward = Vector3.FORWARD
 	if Input.is_action_pressed("forward"):
 		roll(forward)
@@ -17,7 +17,11 @@ func _physics_process(delta):
 		roll(forward.cross(Vector3.UP))
 	if Input.is_action_pressed("left"):
 		roll(-forward.cross(Vector3.UP))
-		
+	if Input.is_action_just_pressed("reset"):
+		hmls.update_tiles("reset")
+	if Input.is_action_just_pressed("level_next"):
+		hmls.update_level()
+		hmls.update_tiles("reset")
 func roll(dir):
 	# Do nothing if we're currently rolling.
 	if rolling:
