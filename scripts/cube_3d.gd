@@ -8,15 +8,14 @@ var speed = 6.0
 var rolling = false
 	
 func _physics_process(_delta):
-	var forward = Vector3.FORWARD
 	if Input.is_action_pressed("forward"):
-		roll(forward)
+		roll(Vector3.FORWARD)
 	if Input.is_action_pressed("back"):
-		roll(-forward)
+		roll(Vector3.BACK)
 	if Input.is_action_pressed("right"):
-		roll(forward.cross(Vector3.UP))
+		roll(Vector3.RIGHT)
 	if Input.is_action_pressed("left"):
-		roll(-forward.cross(Vector3.UP))
+		roll(Vector3.LEFT)
 	if Input.is_action_just_pressed("reset"):
 		hmls.update_tiles("reset")
 	if Input.is_action_just_pressed("level_next"):
@@ -26,13 +25,22 @@ func roll(dir):
 	# Do nothing if we're currently rolling.
 	if rolling:
 		return
-
 	# Cast a ray to check for obstacles
 	var space = get_world_3d().direct_space_state
 	var ray = PhysicsRayQueryParameters3D.create(mesh.global_position,
 			mesh.global_position + dir * cube_size, collision_mask, [self])
 	var collision = space.intersect_ray(ray)
 	if collision:
+		match int(collision.normal.x):
+			-1:
+				hmls.debug_message("cube_3d.gd - roll()","right side collision detected")
+			1:
+				hmls.debug_message("cube_3d.gd - roll()","left side collision detected")
+		match int(collision.normal.z):
+			-1:
+				hmls.debug_message("cube_3d.gd - roll()","bottom side collision detected")
+			1:
+				hmls.debug_message("cube_3d.gd - roll()","top side collision detected")
 		return
 
 	rolling = true
@@ -54,3 +62,4 @@ func roll(dir):
 	mesh.position = Vector3(0, cube_size / 2, 0)
 	mesh.global_transform.basis = b
 	rolling = false
+	hmls.update_cube_position(Vector2(int(position.x), int(position.z)))

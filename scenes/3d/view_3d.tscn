@@ -32,6 +32,17 @@ environment = SubResource("Environment_gyr2i")
 transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 3.5, 7)
 fov = 44.5
 
+[node name="Label" type="Label" parent="Camera3D"]
+custom_minimum_size = Vector2(75, 75)
+offset_left = 364.0
+offset_top = 1.0
+offset_right = 515.0
+offset_bottom = 102.0
+text = "Keybinds:
+R : Regenerate RNG
+N : Load Next Level
+Enter: Cam Switch"
+
 [node name="Cube" parent="." instance=ExtResource("2_x1n4d")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.08165e-12, 2.08165e-12, 2.08165e-12)
 

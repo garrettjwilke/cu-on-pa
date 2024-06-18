@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dhf2k2u5oi73q"
-path.s3tc="res://.godot/imported/texture_01.png-02d5761e913636036863da9b5e68d1e1.s3tc.ctex"
+uid="uid://xn6yw4v7ocep"
+path.s3tc="res://.godot/imported/cube_easy.png-e3c587e6acddb79db1e99ae36b1d41c7.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://textures/texture_01.png"
-dest_files=["res://.godot/imported/texture_01.png-02d5761e913636036863da9b5e68d1e1.s3tc.ctex"]
+source_file="res://textures/cube_easy.png"
+dest_files=["res://.godot/imported/cube_easy.png-e3c587e6acddb79db1e99ae36b1d41c7.s3tc.ctex"]
 
 [params]
 
@@ -26,7 +26,7 @@ mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
-process/fix_alpha_border=true
+process/fix_alpha_border=false
 process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false

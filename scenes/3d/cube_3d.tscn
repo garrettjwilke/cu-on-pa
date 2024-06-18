@@ -1,14 +1,13 @@
 [gd_scene load_steps=6 format=3 uid="uid://c5a2v6m2bufp0"]
 
 [ext_resource type="Script" path="res://scripts/cube_3d.gd" id="1_km0ke"]
-[ext_resource type="Texture2D" uid="uid://jtqxpm6wlv3n" path="res://textures/green_box.png" id="2_30dom"]
+[ext_resource type="Texture2D" uid="uid://xn6yw4v7ocep" path="res://textures/cube_easy.png" id="2_lhuqw"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lyjw7"]
-albedo_texture = ExtResource("2_30dom")
-uv1_scale = Vector3(3, 2, 1)
+[sub_resource type="BoxMesh" id="BoxMesh_6ywqc"]
 
-[sub_resource type="BoxMesh" id="BoxMesh_8q2na"]
-material = SubResource("StandardMaterial3D_lyjw7")
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_m8eqb"]
+albedo_texture = ExtResource("2_lhuqw")
+texture_filter = 0
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ps3m2"]
 
@@ -19,8 +18,9 @@ script = ExtResource("1_km0ke")
 [node name="Pivot" type="Node3D" parent="."]
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Pivot"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
-mesh = SubResource("BoxMesh_8q2na")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.08165e-12, 0.5, 2.08165e-12)
+mesh = SubResource("BoxMesh_6ywqc")
+surface_material_override/0 = SubResource("StandardMaterial3D_m8eqb")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
