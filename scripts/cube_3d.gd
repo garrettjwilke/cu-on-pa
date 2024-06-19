@@ -6,15 +6,27 @@ extends CharacterBody3D
 var cube_size = 1.0
 var speed = 6.0
 var rolling = false
-	
+
 func _physics_process(_delta):
 	if Input.is_action_pressed("forward"):
+		# check if the cube can roll by checking the tiles around current cube position
+		if str(hmls.floor_check(hmls.CUBE_POSITION.x, hmls.CUBE_POSITION.y - 1)) == "stop":
+			return
 		roll(Vector3.FORWARD)
 	if Input.is_action_pressed("back"):
+		# check if the cube can roll by checking the tiles around current cube position
+		if str(hmls.floor_check(hmls.CUBE_POSITION.x, hmls.CUBE_POSITION.y + 1)) == "stop":
+			return
 		roll(Vector3.BACK)
 	if Input.is_action_pressed("right"):
+		# check if the cube can roll by checking the tiles around current cube position
+		if str(hmls.floor_check(hmls.CUBE_POSITION.x + 1, hmls.CUBE_POSITION.y)) == "stop":
+			return
 		roll(Vector3.RIGHT)
 	if Input.is_action_pressed("left"):
+		# check if the cube can roll by checking the tiles around current cube position
+		if str(hmls.floor_check(hmls.CUBE_POSITION.x - 1, hmls.CUBE_POSITION.y)) == "stop":
+			return
 		roll(Vector3.LEFT)
 	if Input.is_action_just_pressed("reset"):
 		hmls.update_tiles("reset")
