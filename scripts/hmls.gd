@@ -1,8 +1,12 @@
 extends Node
 
-var DEBUG = true
+var DEBUG = false
 
 var RESOLUTION = get_default("RESOLUTION")
+
+var START_POSITION = Vector2(0,0)
+
+var MODE_EXCLUSIVE = "false"
 
 func debug_message(TYPE, MESSAGE):
 	if DEBUG == true:
@@ -17,33 +21,34 @@ var LEVEL_MATRIX = []
 # every time a tile is spawned, this NODE_COUNTER goes up
 var NODE_COUNTER = 0
 
+var CUBE_ORIENTATION = Vector2(0,0)
+func update_cube_orientation(pos_x, pos_y):
+	var NEW_CUBE_ORIENTATION = Vector2(CUBE_ORIENTATION.x + pos_x, CUBE_ORIENTATION.y + pos_y)
+	if NEW_CUBE_ORIENTATION.x < 0:
+		NEW_CUBE_ORIENTATION.x = 4
+	if NEW_CUBE_ORIENTATION.x > 4:
+		NEW_CUBE_ORIENTATION.x = 0
+	if NEW_CUBE_ORIENTATION.y < 0:
+		NEW_CUBE_ORIENTATION.y = 4
+	if NEW_CUBE_ORIENTATION.y > 4:
+		NEW_CUBE_ORIENTATION.y = 0
+	CUBE_ORIENTATION = NEW_CUBE_ORIENTATION
+	print(CUBE_ORIENTATION)
+
 # get the position of the cube
 var CUBE_POSITION = Vector2()
 func update_cube_position(position):
 	CUBE_POSITION = position
 	debug_message("",str("cube position: ", CUBE_POSITION.x, " ", CUBE_POSITION.y))
 
-# checker for when cube attempts to move
 func floor_check(pos_x, pos_y):
-	# force cube to never go to negative xy
-	if pos_x < 0 || pos_y < 0:
-		return "stop"
-	# count the rows to stop the cube at the bottom of the level matrix
-	var COUNTER = -1
-	for row in LEVEL_MATRIX:
-		COUNTER += 1
-	var ROWS = COUNTER
-	if pos_y > ROWS:
-		return "stop"
-	# count the amount of cells in the current row to stop the cube at the left/right edges
-	COUNTER = -1
-	for cell in LEVEL_MATRIX[pos_y]:
-		COUNTER += 1
-	var CELLS = COUNTER
-	if pos_x > CELLS:
-		return "stop"
-	# if cube passes all stops, set the color of the next cube it is rolling into
-	var NEXT_COLOR = LEVEL_MATRIX[pos_y][pos_x]
+	var NODE_NAME = str(pos_x,"x",pos_y)
+	var NEXT_COLOR
+	for node in get_node("/root/hmls/VIEW_3D").get_children():
+		if not get_node_or_null(str("/root/hmls/VIEW_3D/",NODE_NAME)):
+			return "stop"
+	# if cube passes check, set the color of the next cube it is rolling into
+	NEXT_COLOR = LEVEL_MATRIX[pos_y][pos_x]
 	# if the next color is a 00 (ZZ) then stop
 	if str(NEXT_COLOR) == "ZZ":
 		return "stop"
@@ -113,6 +118,7 @@ var LEVEL = 0
 func update_level():
 	LEVEL += 1
 	CURRENT_LEVEL = []
+	START_POSITION = Vector2(0,0)
 	debug_message("hmls.update_level()", str("level = ", LEVEL))
 
 # this will return COLOR and NAME
@@ -167,6 +173,8 @@ func get_cell_data(cell):
 			ATTRIBUTE = "lightning"
 		"3":
 			ATTRIBUTE = "box"
+		"9":
+			ATTRIBUTE = "start_position"
 		_:
 			ATTRIBUTE = "null"
 	return [COLOR, NAME, NEW_CELL, ATTRIBUTE]
@@ -179,6 +187,8 @@ func tile_spawn(x, y, MODE, cell):
 	# set the NAME based on the get_cell_data function
 	var NAME = CELL_DATA[1]
 	var ATTRIBUTE = CELL_DATA[3]
+	if ATTRIBUTE == "start_position":
+		START_POSITION = Vector2(x,y)
 	if COLOR == "null":
 		return
 	# add the tile if valid
@@ -215,6 +225,7 @@ func tile_spawn(x, y, MODE, cell):
 		CURRENT_TILE.position = Vector2(x * TILE_SIZE_2D + 3, y * TILE_SIZE_2D + 3)
 		CURRENT_TILE.color = COLOR
 		get_node("/root/hmls/VIEW_2D").add_child(CURRENT_TILE)
+	# WARNING: changing the CURRENT_TILE.name var will break floor_check() function
 	CURRENT_TILE.name = str(x,"x",y)
 	update_mesh_spawn_names(CURRENT_TILE.name)
 
@@ -241,10 +252,10 @@ func update_tiles(MODE):
 			LEVEL_MATRIX = get_default("LEVEL_MATRIX")
 	# if reset, then delete all nodes and update_tiles for 3d and 2d
 	if MODE == "reset":
-		remove_child(get_node("/root/hmls/VIEW_2D"))
-		remove_child(get_node("/root/hmls/VIEW_3D"))
+		remove_child(get_node_or_null("/root/hmls/VIEW_2D"))
+		remove_child(get_node_or_null("/root/hmls/VIEW_3D"))
 		update_mesh_spawn_names("!!delete")
-		# set CURRENT_LEVEL to empty and fill it with 2d, then 3d
+		# set CURRENT_LEVEL to empty and fill it with 3d, then 2d
 		CURRENT_LEVEL = []
 		update_tiles("3d")
 		update_tiles("2d")

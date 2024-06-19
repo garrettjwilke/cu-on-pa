@@ -7,36 +7,46 @@ var cube_size = 1.0
 var speed = 6.0
 var rolling = false
 
+func _ready():
+	position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
+	hmls.update_cube_position(Vector2(position.x,position.z))
+
 func _physics_process(_delta):
 	if Input.is_action_pressed("forward"):
-		# check if the cube can roll by checking the tiles around current cube position
-		if str(hmls.floor_check(hmls.CUBE_POSITION.x, hmls.CUBE_POSITION.y - 1)) == "stop":
-			return
+		match str(hmls.floor_check(hmls.CUBE_POSITION.x, hmls.CUBE_POSITION.y - 1)):
+			"stop":
+				return
 		roll(Vector3.FORWARD)
 	if Input.is_action_pressed("back"):
-		# check if the cube can roll by checking the tiles around current cube position
-		if str(hmls.floor_check(hmls.CUBE_POSITION.x, hmls.CUBE_POSITION.y + 1)) == "stop":
-			return
+		match str(hmls.floor_check(hmls.CUBE_POSITION.x, hmls.CUBE_POSITION.y + 1)):
+			"stop":
+				return
 		roll(Vector3.BACK)
 	if Input.is_action_pressed("right"):
-		# check if the cube can roll by checking the tiles around current cube position
-		if str(hmls.floor_check(hmls.CUBE_POSITION.x + 1, hmls.CUBE_POSITION.y)) == "stop":
-			return
+		match str(hmls.floor_check(hmls.CUBE_POSITION.x + 1, hmls.CUBE_POSITION.y)):
+			"stop":
+				return
 		roll(Vector3.RIGHT)
 	if Input.is_action_pressed("left"):
-		# check if the cube can roll by checking the tiles around current cube position
-		if str(hmls.floor_check(hmls.CUBE_POSITION.x - 1, hmls.CUBE_POSITION.y)) == "stop":
-			return
+		match str(hmls.floor_check(hmls.CUBE_POSITION.x - 1, hmls.CUBE_POSITION.y)):
+			"stop":
+				return
 		roll(Vector3.LEFT)
 	if Input.is_action_just_pressed("reset"):
 		hmls.update_tiles("reset")
 	if Input.is_action_just_pressed("level_next"):
 		hmls.update_level()
 		hmls.update_tiles("reset")
+		# set the position and then pass position to hmls.update_cube_position
+		# if we don't do this, the cube can end up on a bad tile
+		position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
+		hmls.update_cube_position(Vector2(position.x,position.z))
+
 func roll(dir):
 	# Do nothing if we're currently rolling.
 	if rolling:
 		return
+	hmls.debug_message("edit cube_3d.gd - ", "roll(dir)")
 	# Cast a ray to check for obstacles
 	var space = get_world_3d().direct_space_state
 	var ray = PhysicsRayQueryParameters3D.create(mesh.global_position,
@@ -54,12 +64,10 @@ func roll(dir):
 			1:
 				hmls.debug_message("cube_3d.gd - roll()","top side collision detected")
 		return
-
 	rolling = true
 	# Step 1: Offset the pivot.
 	pivot.translate(dir * cube_size / 2)
 	mesh.global_translate(-dir * cube_size / 2)
-	
 	# Step 2: Animate the rotation.
 	var axis = dir.cross(Vector3.DOWN)
 	var tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
@@ -75,3 +83,4 @@ func roll(dir):
 	mesh.global_transform.basis = b
 	rolling = false
 	hmls.update_cube_position(Vector2(int(position.x), int(position.z)))
+	
