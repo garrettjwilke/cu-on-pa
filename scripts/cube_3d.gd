@@ -3,6 +3,7 @@ extends CharacterBody3D
 @onready var pivot = $Pivot
 @onready var mesh = $Pivot/MeshInstance3D
 
+
 var cube_size = 1.0
 var speed = 6.0
 var rolling = false
@@ -13,26 +14,38 @@ func _ready():
 	position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
 	hmls.update_cube_position(Vector2(position.x,position.z))
 
+var TEST_ROLL = Vector3()
 func _physics_process(_delta):
 	if Input.is_action_pressed("forward"):
 		match str(hmls.floor_check(hmls.CUBE_POSITION.x, hmls.CUBE_POSITION.y - 1)):
 			"stop":
 				return
+		TEST_ROLL = fake_roll(Vector3.FORWARD)
+		print(str("test roll: ", TEST_ROLL))
+		print(str("cube rotation: ", CURRENT_ORIENTATION))
 		roll(Vector3.FORWARD)
 	if Input.is_action_pressed("back"):
 		match str(hmls.floor_check(hmls.CUBE_POSITION.x, hmls.CUBE_POSITION.y + 1)):
 			"stop":
 				return
+		TEST_ROLL = fake_roll(Vector3.FORWARD)
+		print(str("test roll: ", TEST_ROLL))
+		print(str("cube rotation: ", CURRENT_ORIENTATION))
 		roll(Vector3.BACK)
 	if Input.is_action_pressed("right"):
 		match str(hmls.floor_check(hmls.CUBE_POSITION.x + 1, hmls.CUBE_POSITION.y)):
 			"stop":
 				return
+		print(str("test roll: ", TEST_ROLL))
+		print(str("cube rotation: ", CURRENT_ORIENTATION))
 		roll(Vector3.RIGHT)
 	if Input.is_action_pressed("left"):
 		match str(hmls.floor_check(hmls.CUBE_POSITION.x - 1, hmls.CUBE_POSITION.y)):
 			"stop":
 				return
+		TEST_ROLL = fake_roll(Vector3.FORWARD)
+		print(str("test roll: ", TEST_ROLL))
+		print(str("cube rotation: ", CURRENT_ORIENTATION))
 		roll(Vector3.LEFT)
 	if Input.is_action_just_pressed("reset"):
 		hmls.update_tiles("reset")
@@ -47,6 +60,21 @@ func _physics_process(_delta):
 # round number up/down
 func round_to_dec(num, digit):
 	return round(num * pow(10.0, digit)) / pow(10.0, digit)
+
+func fake_roll(dir):
+	if rolling == true:
+		return
+	var FAKE_MESH = MeshInstance3D.new()
+	FAKE_MESH.position = mesh.position
+	FAKE_MESH.rotation_degrees = mesh.rotation_degrees
+	pivot.add_child(FAKE_MESH)
+	var b = FAKE_MESH.global_transform.basis
+	FAKE_MESH.global_translate(-dir * cube_size / 2)
+	FAKE_MESH.position = Vector3(0, cube_size / 2, 0)
+	FAKE_MESH.global_transform.basis = b
+	var RETURN_VALUE = FAKE_MESH.rotation_degrees
+	FAKE_MESH.queue_free()
+	return RETURN_VALUE
 
 func roll(dir):
 	# Do nothing if we're currently rolling.
@@ -112,6 +140,7 @@ func roll(dir):
 		print("!!!! WARNING !!!!")
 		print(str("from cube_3d.gd - find missing CURRENT_ORIENTATION: ", CURRENT_ORIENTATION))
 		print("!!!! WARNING !!!!")
+	print(CURRENT_ORIENTATION)
 	hmls.debug_message("", str("CURRENT COLOR: ", CURRENT_ORIENTATION_COLOR))
 	rolling = false
 	hmls.update_cube_position(Vector2(int(position.x), int(position.z)))
