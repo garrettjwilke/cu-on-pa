@@ -21,30 +21,6 @@ var LEVEL_MATRIX = []
 # every time a tile is spawned, this NODE_COUNTER goes up
 var NODE_COUNTER = 0
 
-var CUBE_ORIENTATION = Vector3(0,0,0)
-var LAST_ORIENTATION
-func update_cube_orientation(new_x, new_z, new_y):
-	var NEW_CUBE_ORIENTATION = Vector3(CUBE_ORIENTATION.x + new_x,
-			CUBE_ORIENTATION.z + new_z,
-			CUBE_ORIENTATION.y + new_y)
-	if NEW_CUBE_ORIENTATION == LAST_ORIENTATION:
-		return
-	if NEW_CUBE_ORIENTATION.x < 0:
-		NEW_CUBE_ORIENTATION.x = 4
-	if NEW_CUBE_ORIENTATION.x > 4:
-		NEW_CUBE_ORIENTATION.x = 0
-	if NEW_CUBE_ORIENTATION.y < 0:
-		NEW_CUBE_ORIENTATION.y = 4
-	if NEW_CUBE_ORIENTATION.y > 4:
-		NEW_CUBE_ORIENTATION.y = 0
-	if NEW_CUBE_ORIENTATION.z < 0:
-		NEW_CUBE_ORIENTATION.z = 4
-	if NEW_CUBE_ORIENTATION.z > 4:
-		NEW_CUBE_ORIENTATION.z = 0
-	LAST_ORIENTATION = NEW_CUBE_ORIENTATION
-	CUBE_ORIENTATION = NEW_CUBE_ORIENTATION
-	debug_message("CUBE_ORIENTATION: ",CUBE_ORIENTATION)
-
 # get the position of the cube
 var CUBE_POSITION = Vector2()
 func update_cube_position(position):

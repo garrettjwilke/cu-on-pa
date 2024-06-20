@@ -6,6 +6,8 @@ extends CharacterBody3D
 var cube_size = 1.0
 var speed = 6.0
 var rolling = false
+var CURRENT_ORIENTATION = Vector3(0,0,0)
+var CURRENT_ORIENTATION_COLOR = "blue"
 
 func _ready():
 	position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
@@ -41,6 +43,10 @@ func _physics_process(_delta):
 		# if we don't do this, the cube can end up on a bad tile
 		position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
 		hmls.update_cube_position(Vector2(position.x,position.z))
+
+# round number up/down
+func round_to_dec(num, digit):
+	return round(num * pow(10.0, digit)) / pow(10.0, digit)
 
 func roll(dir):
 	# Do nothing if we're currently rolling.
@@ -79,6 +85,34 @@ func roll(dir):
 	pivot.transform = Transform3D.IDENTITY
 	mesh.position = Vector3(0, cube_size / 2, 0)
 	mesh.global_transform.basis = b
+	# the orientation comes out with small floating point differences. round down/up
+	CURRENT_ORIENTATION = Vector3(
+		round_to_dec(mesh.rotation_degrees.x, 0),
+		round_to_dec(mesh.rotation_degrees.y, 0),
+		round_to_dec(mesh.rotation_degrees.z, 0)
+		)
+	# this messy match statement is how to keep track of what color is facing up on the cube
+	match CURRENT_ORIENTATION:
+		Vector3(0,0,0),Vector3(0,90,0),Vector3(0,-90,0),Vector3(0,180,-90),Vector3(0,-180,0),Vector3(0,180,0):
+			CURRENT_ORIENTATION_COLOR = "blue"
+		Vector3(0,0,-90),Vector3(0,-180,-90),Vector3(0,90,-90),Vector3(0,-90,-90):
+			CURRENT_ORIENTATION_COLOR = "red"
+		Vector3(0,0,180),Vector3(0,0,-180),Vector3(0,180,-180),Vector3(0,-180,180),Vector3(0,90,180),Vector3(0,-90,-180),Vector3(0,90,-180),Vector3(0,-90,180),Vector3(0, 180, 180),Vector3(0,-180,-180):
+			CURRENT_ORIENTATION_COLOR = "orange"
+		Vector3(0,0,90),Vector3(0,90,90),Vector3(0,-90,90),Vector3(0,180,90),Vector3(0,-180,90):
+			CURRENT_ORIENTATION_COLOR = "yellow"
+		Vector3(-90,0,0),Vector3(-90,-90,0),Vector3(0,90,90),Vector3(-90,90,0),Vector3(-90,-180,0),Vector3(-90,180,0):
+			CURRENT_ORIENTATION_COLOR = "green"
+		Vector3(90,0,0),Vector3(90,-90,0),Vector3(90,90,0),Vector3(90,180,0),Vector3(90,-180,0):
+			CURRENT_ORIENTATION_COLOR = "purple"
+		_:
+			CURRENT_ORIENTATION_COLOR = "null"
+	# if there is no color associated with the CURRENT_ORIENTATION, show the warning
+	if CURRENT_ORIENTATION_COLOR == "null":
+		print("!!!! WARNING !!!!")
+		print(str("from cube_3d.gd - find missing CURRENT_ORIENTATION: ", CURRENT_ORIENTATION))
+		print("!!!! WARNING !!!!")
+	hmls.debug_message("", str("CURRENT COLOR: ", CURRENT_ORIENTATION_COLOR))
 	rolling = false
 	hmls.update_cube_position(Vector2(int(position.x), int(position.z)))
 	
