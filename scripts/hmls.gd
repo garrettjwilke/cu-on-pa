@@ -1,6 +1,6 @@
 extends Node
 
-var DEBUG = false
+var DEBUG = true
 
 var RESOLUTION = get_default("RESOLUTION")
 
@@ -21,9 +21,14 @@ var LEVEL_MATRIX = []
 # every time a tile is spawned, this NODE_COUNTER goes up
 var NODE_COUNTER = 0
 
-var CUBE_ORIENTATION = Vector2(0,0)
-func update_cube_orientation(pos_x, pos_y):
-	var NEW_CUBE_ORIENTATION = Vector2(CUBE_ORIENTATION.x + pos_x, CUBE_ORIENTATION.y + pos_y)
+var CUBE_ORIENTATION = Vector3(0,0,0)
+var LAST_ORIENTATION
+func update_cube_orientation(new_x, new_z, new_y):
+	var NEW_CUBE_ORIENTATION = Vector3(CUBE_ORIENTATION.x + new_x,
+			CUBE_ORIENTATION.z + new_z,
+			CUBE_ORIENTATION.y + new_y)
+	if NEW_CUBE_ORIENTATION == LAST_ORIENTATION:
+		return
 	if NEW_CUBE_ORIENTATION.x < 0:
 		NEW_CUBE_ORIENTATION.x = 4
 	if NEW_CUBE_ORIENTATION.x > 4:
@@ -32,8 +37,13 @@ func update_cube_orientation(pos_x, pos_y):
 		NEW_CUBE_ORIENTATION.y = 4
 	if NEW_CUBE_ORIENTATION.y > 4:
 		NEW_CUBE_ORIENTATION.y = 0
+	if NEW_CUBE_ORIENTATION.z < 0:
+		NEW_CUBE_ORIENTATION.z = 4
+	if NEW_CUBE_ORIENTATION.z > 4:
+		NEW_CUBE_ORIENTATION.z = 0
+	LAST_ORIENTATION = NEW_CUBE_ORIENTATION
 	CUBE_ORIENTATION = NEW_CUBE_ORIENTATION
-	print(CUBE_ORIENTATION)
+	debug_message("CUBE_ORIENTATION: ",CUBE_ORIENTATION)
 
 # get the position of the cube
 var CUBE_POSITION = Vector2()
@@ -72,6 +82,8 @@ func get_default(setting):
 			return DEFAULTS.TILE_SIZE_2D
 		"RESOLUTION":
 			return Vector2(DEFAULTS.RESOLUTION[0], DEFAULTS.RESOLUTION[1])
+		"GAME_DIFFICULTY":
+			return DEFAULTS.GAME_DIFFICULTY
 		"LEVEL_MATRIX":
 			return DEFAULTS.LEVEL_MATRIX
 		"COLOR_GRAY":
@@ -123,6 +135,15 @@ func update_level():
 
 # this will return COLOR and NAME
 func get_cell_data(cell):
+	# wonky things happen if you input a number that isn't double digits
+	# so i check if the cell data is exactly 2 digits and work from there
+	var CHARACTER_COUNT = 0
+	# add 1 to the character count for every character in the current cell
+	for character in str(cell):
+		CHARACTER_COUNT += 1
+	# if the character count is less than or greater than 2, skip it by setting a 00
+	if not CHARACTER_COUNT == 2:
+		cell = 00
 	var COLOR
 	var NAME
 	var NEW_CELL = cell
@@ -156,6 +177,8 @@ func get_cell_data(cell):
 			COLOR = get_default("COLOR_ORANGE")
 			NAME = "orange"
 		"8":
+			# when RNG is set, we need a way to keep track of what the new tile color is
+			# so we get a random tile, and set the properties back in the level matrix
 			var NEW_DATA = get_cell_data(rng(1,7))
 			COLOR = NEW_DATA[0]
 			NAME = NEW_DATA[1]

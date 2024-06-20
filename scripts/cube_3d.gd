@@ -46,7 +46,6 @@ func roll(dir):
 	# Do nothing if we're currently rolling.
 	if rolling:
 		return
-	hmls.debug_message("edit cube_3d.gd - ", "roll(dir)")
 	# Cast a ray to check for obstacles
 	var space = get_world_3d().direct_space_state
 	var ray = PhysicsRayQueryParameters3D.create(mesh.global_position,
@@ -74,7 +73,6 @@ func roll(dir):
 	tween.tween_property(pivot, "transform",
 			pivot.transform.rotated_local(axis, PI/2), 1 / speed)
 	await tween.finished
-
 	# Step 3: Finalize the movement and reset the offset.
 	position += dir * cube_size
 	var b = mesh.global_transform.basis

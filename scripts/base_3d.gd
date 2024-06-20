@@ -7,6 +7,7 @@ var DYNAMIC_CAM = true
 
 func _ready():
 	get_node("Camera3D/Label").add_theme_font_size_override("font_size", 8)
+	# not sure why but the print line below fixes the standalone 3d version
 	print("")
 	hmls.update_tiles("3d")
 	# after updating the level tiles, set the cube position
