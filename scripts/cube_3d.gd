@@ -9,72 +9,91 @@ var speed = 6.0
 var rolling = false
 var CURRENT_ORIENTATION = Vector3(0,0,0)
 var CURRENT_ORIENTATION_COLOR = "blue"
-
-func _ready():
-	position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
-	hmls.update_cube_position(Vector2(position.x,position.z))
-
-var TEST_ROLL = Vector3()
-func _physics_process(_delta):
-	if Input.is_action_pressed("forward"):
-		match str(hmls.floor_check(hmls.CUBE_POSITION.x, hmls.CUBE_POSITION.y - 1)):
-			"stop":
-				return
-		TEST_ROLL = fake_roll(Vector3.FORWARD)
-		print(str("test roll: ", TEST_ROLL))
-		print(str("cube rotation: ", CURRENT_ORIENTATION))
-		roll(Vector3.FORWARD)
-	if Input.is_action_pressed("back"):
-		match str(hmls.floor_check(hmls.CUBE_POSITION.x, hmls.CUBE_POSITION.y + 1)):
-			"stop":
-				return
-		TEST_ROLL = fake_roll(Vector3.FORWARD)
-		print(str("test roll: ", TEST_ROLL))
-		print(str("cube rotation: ", CURRENT_ORIENTATION))
-		roll(Vector3.BACK)
-	if Input.is_action_pressed("right"):
-		match str(hmls.floor_check(hmls.CUBE_POSITION.x + 1, hmls.CUBE_POSITION.y)):
-			"stop":
-				return
-		print(str("test roll: ", TEST_ROLL))
-		print(str("cube rotation: ", CURRENT_ORIENTATION))
-		roll(Vector3.RIGHT)
-	if Input.is_action_pressed("left"):
-		match str(hmls.floor_check(hmls.CUBE_POSITION.x - 1, hmls.CUBE_POSITION.y)):
-			"stop":
-				return
-		TEST_ROLL = fake_roll(Vector3.FORWARD)
-		print(str("test roll: ", TEST_ROLL))
-		print(str("cube rotation: ", CURRENT_ORIENTATION))
-		roll(Vector3.LEFT)
-	if Input.is_action_just_pressed("reset"):
-		hmls.update_tiles("reset")
-	if Input.is_action_just_pressed("level_next"):
-		hmls.update_level()
-		hmls.update_tiles("reset")
-		# set the position and then pass position to hmls.update_cube_position
-		# if we don't do this, the cube can end up on a bad tile
-		position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
-		hmls.update_cube_position(Vector2(position.x,position.z))
+var FUTURE_ORIENTATION = Vector3(0,0,0)
+var FUTURE_ORIENTATION_COLOR = "blue"
 
 # round number up/down
 func round_to_dec(num, digit):
 	return round(num * pow(10.0, digit)) / pow(10.0, digit)
 
+func round_vect3(data):
+	data.x = round(data.x * pow(10.0,0))
+	data.y = round(data.y * pow(10.0,0))
+	data.z = round(data.z * pow(10.0,0))
+	return data
+
+func match_orientation(direction):
+	direction = round_vect3(direction)
+	var NEW_COLOR
+	# this messy match statement is how to keep track of what color is facing up on the cube
+	match direction:
+		Vector3(0,0,0),Vector3(0,90,0),Vector3(0,-90,0),Vector3(0,-180,0),Vector3(0,180,0):
+			NEW_COLOR = "blue"
+		Vector3(0,0,-90),Vector3(0,-180,-90),Vector3(0,90,-90),Vector3(0,-90,-90),Vector3(0,180,-90):
+			NEW_COLOR = "red"
+		Vector3(0,0,180),Vector3(0,0,-180),Vector3(0,180,-180),Vector3(0,-180,180),Vector3(0,90,180),Vector3(0,-90,-180),Vector3(0,90,-180),Vector3(0,-90,180),Vector3(0, 180, 180),Vector3(0,-180,-180),Vector3(180,0,0),Vector3(-180,0,0):
+			NEW_COLOR = "orange"
+		Vector3(0,0,90),Vector3(0,90,90),Vector3(0,-90,90),Vector3(0,180,90),Vector3(0,-180,90):
+			NEW_COLOR = "yellow"
+		Vector3(-90,0,0),Vector3(-90,-90,0),Vector3(0,90,90),Vector3(-90,90,0),Vector3(-90,-180,0),Vector3(-90,180,0):
+			NEW_COLOR = "green"
+		Vector3(90,0,0),Vector3(90,-90,0),Vector3(90,90,0),Vector3(90,180,0),Vector3(90,-180,0):
+			NEW_COLOR = "purple"
+		_:
+			NEW_COLOR = "null"
+	return NEW_COLOR
+
+# before actually rolling, we want check for the color of the tile we are rolling into
+# so this junk below will create a fake cube and roll it to find if we can even land there
 func fake_roll(dir):
-	if rolling == true:
-		return
+	# create a FAKE_PIVOT mesh
+	var FAKE_PIVOT = Node3D.new()
+	FAKE_PIVOT.name = "FAKE_PIVOT"
+	pivot.add_child(FAKE_PIVOT)
+	# create an invisible mesh
 	var FAKE_MESH = MeshInstance3D.new()
+	FAKE_MESH.name = "INVISIBLE_CUBE"
+	FAKE_PIVOT.add_child(FAKE_MESH)
+	# set the properties from the original mesh and pivot
 	FAKE_MESH.position = mesh.position
-	FAKE_MESH.rotation_degrees = mesh.rotation_degrees
-	pivot.add_child(FAKE_MESH)
-	var b = FAKE_MESH.global_transform.basis
+	FAKE_MESH.global_transform.basis = mesh.global_transform.basis
+	FAKE_MESH.rotation_degrees = round_vect3(mesh.rotation_degrees)
+	# do the stuffs to make the fake pivot move
+	FAKE_PIVOT.translate(dir * cube_size / 2)
 	FAKE_MESH.global_translate(-dir * cube_size / 2)
+	var axis = dir.cross(Vector3.DOWN)
+	var tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tween.tween_property(FAKE_PIVOT, "transform",
+			FAKE_PIVOT.transform.rotated_local(axis, PI/2), 1 / 5000)
+	await tween.finished
+	var b = FAKE_MESH.global_transform.basis
+	FAKE_PIVOT.transform = Transform3D.IDENTITY
 	FAKE_MESH.position = Vector3(0, cube_size / 2, 0)
 	FAKE_MESH.global_transform.basis = b
-	var RETURN_VALUE = FAKE_MESH.rotation_degrees
-	FAKE_MESH.queue_free()
-	return RETURN_VALUE
+	# this will get the orientation of the FAKE_MESH after it has moved around and stuffs
+	FUTURE_ORIENTATION = round_vect3(FAKE_MESH.rotation_degrees)
+	# we use the orientation of the FAKE_MESH to determine what color would be on top if we move
+	FUTURE_ORIENTATION_COLOR = match_orientation(FUTURE_ORIENTATION)
+	print("future orientation: ", FUTURE_ORIENTATION)
+	print(str("current orientation : ", CURRENT_ORIENTATION))
+	# we then delete the FAKE_PIVOT and FAKE_MESH
+	FAKE_PIVOT.queue_free()
+	# we need to get the properties of the tile we are moving into
+	# this will create an x y position of the tile we are trying to move to
+	var CELL = Vector2(hmls.CUBE_POSITION.x + dir.x, hmls.CUBE_POSITION.y + dir.z)
+	# this will give us the value in the x and y coordinates of our LEVEL_MATRIX
+	var CELL_DATA = hmls.LEVEL_MATRIX[CELL.y][CELL.x]
+	# we then take that CELL_DATA and get color and attributes of the tile we are trying to move to
+	var CHECK_COLOR = hmls.get_cell_data(CELL_DATA)
+	# if the color is gray, we should be able to move into it
+	if CHECK_COLOR[1] == "gray":
+		# we set the color to the cube orientation color
+		CHECK_COLOR[1] = FUTURE_ORIENTATION_COLOR
+	# if the color of the tile we are trying to move into is the same as what our cube will be
+	if FUTURE_ORIENTATION_COLOR == CHECK_COLOR[1]:
+		return "true"
+	else:
+		return "false"
 
 func roll(dir):
 	# Do nothing if we're currently rolling.
@@ -113,35 +132,56 @@ func roll(dir):
 	pivot.transform = Transform3D.IDENTITY
 	mesh.position = Vector3(0, cube_size / 2, 0)
 	mesh.global_transform.basis = b
-	# the orientation comes out with small floating point differences. round down/up
-	CURRENT_ORIENTATION = Vector3(
-		round_to_dec(mesh.rotation_degrees.x, 0),
-		round_to_dec(mesh.rotation_degrees.y, 0),
-		round_to_dec(mesh.rotation_degrees.z, 0)
-		)
-	# this messy match statement is how to keep track of what color is facing up on the cube
-	match CURRENT_ORIENTATION:
-		Vector3(0,0,0),Vector3(0,90,0),Vector3(0,-90,0),Vector3(0,180,-90),Vector3(0,-180,0),Vector3(0,180,0):
-			CURRENT_ORIENTATION_COLOR = "blue"
-		Vector3(0,0,-90),Vector3(0,-180,-90),Vector3(0,90,-90),Vector3(0,-90,-90):
-			CURRENT_ORIENTATION_COLOR = "red"
-		Vector3(0,0,180),Vector3(0,0,-180),Vector3(0,180,-180),Vector3(0,-180,180),Vector3(0,90,180),Vector3(0,-90,-180),Vector3(0,90,-180),Vector3(0,-90,180),Vector3(0, 180, 180),Vector3(0,-180,-180):
-			CURRENT_ORIENTATION_COLOR = "orange"
-		Vector3(0,0,90),Vector3(0,90,90),Vector3(0,-90,90),Vector3(0,180,90),Vector3(0,-180,90):
-			CURRENT_ORIENTATION_COLOR = "yellow"
-		Vector3(-90,0,0),Vector3(-90,-90,0),Vector3(0,90,90),Vector3(-90,90,0),Vector3(-90,-180,0),Vector3(-90,180,0):
-			CURRENT_ORIENTATION_COLOR = "green"
-		Vector3(90,0,0),Vector3(90,-90,0),Vector3(90,90,0),Vector3(90,180,0),Vector3(90,-180,0):
-			CURRENT_ORIENTATION_COLOR = "purple"
-		_:
-			CURRENT_ORIENTATION_COLOR = "null"
-	# if there is no color associated with the CURRENT_ORIENTATION, show the warning
-	if CURRENT_ORIENTATION_COLOR == "null":
-		print("!!!! WARNING !!!!")
-		print(str("from cube_3d.gd - find missing CURRENT_ORIENTATION: ", CURRENT_ORIENTATION))
-		print("!!!! WARNING !!!!")
-	print(CURRENT_ORIENTATION)
+	CURRENT_ORIENTATION = round_vect3(mesh.rotation_degrees)
+	CURRENT_ORIENTATION_COLOR = match_orientation(CURRENT_ORIENTATION)
 	hmls.debug_message("", str("CURRENT COLOR: ", CURRENT_ORIENTATION_COLOR))
 	rolling = false
 	hmls.update_cube_position(Vector2(int(position.x), int(position.z)))
-	
+
+func _ready():
+	position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
+	hmls.update_cube_position(Vector2(position.x,position.z))
+
+# sloppy input management
+func _physics_process(_delta):
+	if Input.is_action_pressed("forward"):
+		match str(hmls.floor_check(hmls.CUBE_POSITION.x, hmls.CUBE_POSITION.y - 1)):
+			"stop":
+				return
+		var CAN_ROLL = await fake_roll(Vector3.FORWARD)
+		if CAN_ROLL == "false":
+			return
+		roll(Vector3.FORWARD)
+	if Input.is_action_pressed("back"):
+		match str(hmls.floor_check(hmls.CUBE_POSITION.x, hmls.CUBE_POSITION.y + 1)):
+			"stop":
+				return
+		var CAN_ROLL = await fake_roll(Vector3.BACK)
+		if CAN_ROLL == "false":
+			return
+		roll(Vector3.BACK)
+	if Input.is_action_pressed("right"):
+		match str(hmls.floor_check(hmls.CUBE_POSITION.x + 1, hmls.CUBE_POSITION.y)):
+			"stop":
+				return
+		var CAN_ROLL = await fake_roll(Vector3.RIGHT)
+		if CAN_ROLL == "false":
+			return
+		roll(Vector3.RIGHT)
+	if Input.is_action_pressed("left"):
+		match str(hmls.floor_check(hmls.CUBE_POSITION.x - 1, hmls.CUBE_POSITION.y)):
+			"stop":
+				return
+		var CAN_ROLL = await fake_roll(Vector3.LEFT)
+		if CAN_ROLL == "false":
+			return
+		roll(Vector3.LEFT)
+	if Input.is_action_just_pressed("reset"):
+		hmls.update_tiles("reset")
+	if Input.is_action_just_pressed("level_next"):
+		hmls.update_level()
+		hmls.update_tiles("reset")
+		# set the position and then pass position to hmls.update_cube_position
+		# if we don't do this, the cube can end up on a bad tile
+		position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
+		hmls.update_cube_position(Vector2(position.x,position.z))

@@ -33,7 +33,7 @@ func floor_check(pos_x, pos_y):
 	for node in get_node("/root/hmls/VIEW_3D").get_children():
 		if not get_node_or_null(str("/root/hmls/VIEW_3D/",NODE_NAME)):
 			return "stop"
-	# if cube passes check, set the color of the next cube it is rolling into
+	# if cube passes check, get the color of the next tile it is rolling into
 	NEXT_COLOR = LEVEL_MATRIX[pos_y][pos_x]
 	# if the next color is a 00 (ZZ) then stop
 	if str(NEXT_COLOR) == "ZZ":
