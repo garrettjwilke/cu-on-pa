@@ -40,12 +40,18 @@ func match_orientation(direction):
 		Vector3(90,0,0),Vector3(90,-90,0),Vector3(90,90,0),Vector3(90,180,0),Vector3(90,-180,0):
 			NEW_COLOR = "purple"
 		_:
+			print()
+			print("WARNING:")
+			print(str("cube_3d.gd - match_orientation: color not found. ", direction))
 			NEW_COLOR = "null"
 	return NEW_COLOR
 
+var IS_ACTIVE = "false"
 # before actually rolling, we want check for the color of the tile we are rolling into
 # so this junk below will create a fake cube and roll it to find if we can even land there
 func fake_roll(dir):
+	if rolling:
+		return "false"
 	# create a FAKE_PIVOT mesh
 	var FAKE_PIVOT = Node3D.new()
 	FAKE_PIVOT.name = "FAKE_PIVOT"
@@ -74,8 +80,6 @@ func fake_roll(dir):
 	FUTURE_ORIENTATION = round_vect3(FAKE_MESH.rotation_degrees)
 	# we use the orientation of the FAKE_MESH to determine what color would be on top if we move
 	FUTURE_ORIENTATION_COLOR = match_orientation(FUTURE_ORIENTATION)
-	print("future orientation: ", FUTURE_ORIENTATION)
-	print(str("current orientation : ", CURRENT_ORIENTATION))
 	# we then delete the FAKE_PIVOT and FAKE_MESH
 	FAKE_PIVOT.queue_free()
 	# we need to get the properties of the tile we are moving into
@@ -85,6 +89,9 @@ func fake_roll(dir):
 	var CELL_DATA = hmls.LEVEL_MATRIX[CELL.y][CELL.x]
 	# we then take that CELL_DATA and get color and attributes of the tile we are trying to move to
 	var CHECK_COLOR = hmls.get_cell_data(CELL_DATA)
+	print()
+	print("attempted cube color: ", FUTURE_ORIENTATION_COLOR, " ", FUTURE_ORIENTATION)
+	print("attempted tile color: ", CHECK_COLOR[1])
 	# if the color is gray, we should be able to move into it
 	if CHECK_COLOR[1] == "gray":
 		# we set the color to the cube orientation color
