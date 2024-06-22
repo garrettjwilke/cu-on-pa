@@ -2,8 +2,7 @@ extends CharacterBody3D
 
 @onready var pivot = $Pivot
 @onready var mesh = $Pivot/MeshInstance3D
-
-
+#var STARTING_PIVOT
 var cube_size = 1.0
 var speed = 6.0
 var rolling = false
@@ -11,10 +10,6 @@ var CURRENT_ORIENTATION = Vector3(0,0,0)
 var CURRENT_ORIENTATION_COLOR = "blue"
 var FUTURE_ORIENTATION = Vector3(0,0,0)
 var FUTURE_ORIENTATION_COLOR = "blue"
-
-# round number up/down
-func round_to_dec(num, digit):
-	return round(num * pow(10.0, digit)) / pow(10.0, digit)
 
 # round vector3
 func round_vect3(data):
@@ -63,7 +58,7 @@ func fake_roll(dir):
 	FAKE_PIVOT.add_child(FAKE_MESH)
 	# set the properties from the original mesh and pivot
 	FAKE_MESH.position = mesh.position
-	FAKE_MESH.global_transform.basis = mesh.global_transform.basis
+	#FAKE_MESH.global_transform.basis = mesh.global_transform.basis
 	FAKE_MESH.rotation_degrees = round_vect3(mesh.rotation_degrees)
 	# do the stuffs to make the fake pivot move
 	FAKE_PIVOT.translate(dir * cube_size / 2)
@@ -71,7 +66,7 @@ func fake_roll(dir):
 	var axis = dir.cross(Vector3.DOWN)
 	var tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	tween.tween_property(FAKE_PIVOT, "transform",
-			FAKE_PIVOT.transform.rotated_local(axis, PI/2), 1 / 5000)
+			FAKE_PIVOT.transform.rotated_local(axis, PI/2), 0.000000001)
 	await tween.finished
 	var b = FAKE_MESH.global_transform.basis
 	FAKE_PIVOT.transform = Transform3D.IDENTITY
@@ -93,11 +88,17 @@ func fake_roll(dir):
 	print()
 	print("attempted cube color: ", FUTURE_ORIENTATION_COLOR, " ", FUTURE_ORIENTATION)
 	print("attempted tile color: ", CHECK_COLOR[1])
+	print()
 	# if the tile color is gray, we cheat and say that the tile color is the color of our cube
 	if CHECK_COLOR[1] == "gray":
 		CHECK_COLOR[1] = FUTURE_ORIENTATION_COLOR
 	# if the color of the tile we are trying to move into is the same as what our cube will be
 	if FUTURE_ORIENTATION_COLOR == CHECK_COLOR[1]:
+		if CHECK_COLOR[3] == "camera_switch":
+			if hmls.DYNAMIC_CAM == "true":
+				hmls.DYNAMIC_CAM = "false"
+			else:
+				hmls.DYNAMIC_CAM = "true"
 		return "true"
 	else:
 		return "false"
@@ -139,6 +140,7 @@ func roll(dir):
 	pivot.transform = Transform3D.IDENTITY
 	mesh.position = Vector3(0, cube_size / 2, 0)
 	mesh.global_transform.basis = b
+	print(str("possible cube orientation stuff: ", b.x,b.y,b.z))
 	CURRENT_ORIENTATION = round_vect3(mesh.rotation_degrees)
 	CURRENT_ORIENTATION_COLOR = match_orientation(CURRENT_ORIENTATION)
 	hmls.debug_message("", str("CURRENT COLOR: ", CURRENT_ORIENTATION_COLOR))
@@ -146,11 +148,12 @@ func roll(dir):
 	hmls.update_cube_position(Vector2(int(position.x), int(position.z)))
 
 func _ready():
+	#STARTING_PIVOT = pivot
 	position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
 	hmls.update_cube_position(Vector2(position.x,position.z))
 
 # sloppy input management
-func _physics_process(_delta):
+func _physics_process(delta):
 	if Input.is_action_pressed("forward"):
 		match str(hmls.floor_check(hmls.CUBE_POSITION.x, hmls.CUBE_POSITION.y - 1)):
 			"stop":
@@ -184,7 +187,12 @@ func _physics_process(_delta):
 			return
 		roll(Vector3.LEFT)
 	if Input.is_action_just_pressed("reset"):
+		# uncomment the line below to force the RNG to be the same each reset
+		#hmls.update_rng_seed(hmls.get_default("RNG_SEED"))
 		hmls.update_tiles("reset")
+		position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
+		hmls.update_cube_position(Vector2(position.x,position.z))
+		mesh.rotation_degrees = Vector3(0,0,0)
 	if Input.is_action_just_pressed("level_next"):
 		hmls.update_level()
 		hmls.update_tiles("reset")
@@ -192,3 +200,4 @@ func _physics_process(_delta):
 		# if we don't do this, the cube can end up on a bad tile
 		position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
 		hmls.update_cube_position(Vector2(position.x,position.z))
+		mesh.rotation_degrees = Vector3(0,0,0)

@@ -6,6 +6,8 @@ var START_POSITION = Vector2(0,0)
 
 var MODE_EXCLUSIVE = "false"
 
+var DYNAMIC_CAM = "true"
+
 func debug_message(TYPE, MESSAGE):
 	if DEBUG == true:
 		print(TYPE)
@@ -16,8 +18,16 @@ var TILE_SIZE_2D = get_default("TILE_SIZE_2D")
 
 # this will get set with the level data later
 var LEVEL_MATRIX = []
+# LEVEL_WIDTH and LEVEL_HEIGHT are calculated when spawning tiles
+var LEVEL_RESOLUTION = Vector2(0,0)
+#var LEVEL_WIDTH = 0
+#var LEVEL_HEIGHT = 0
 # every time a tile is spawned, this NODE_COUNTER goes up
 var NODE_COUNTER = 0
+
+# round number up/down
+func round_to_dec(num):
+	return round(num * pow(10.0, 0)) / pow(10.0, 0)
 
 # get the position of the cube
 var CUBE_POSITION = Vector2()
@@ -78,17 +88,17 @@ func get_default(setting):
 
 # you can control the outcome of the RNG with a seed
 var RNG_SEED = get_default("RNG_SEED")
+var RNG_COUNTER = 0
 func update_rng_seed(new_seed):
 	RNG_SEED = new_seed
+	RNG_COUNTER = 0
 
-# RNG number generator
-var new_rng_number = 0
 func rng(MIN, MAX):
-	new_rng_number += 1
+	RNG_COUNTER += 1
 	var number = RandomNumberGenerator.new()
 	# combine the RNG number with the seed and you get a new_seed unique from the rest
 	# if we skip this, we run into a chance where the RNG produces the same result and the game breaks
-	var new_seed = str(RNG_SEED, str(new_rng_number)).hash()
+	var new_seed = str(RNG_SEED, str(RNG_COUNTER)).hash()
 	number.randomize()
 	number.set_seed(new_seed)
 	number = number.randi_range(MIN, MAX)
@@ -173,6 +183,10 @@ func get_cell_data(cell):
 			ATTRIBUTE = "lightning"
 		"3":
 			ATTRIBUTE = "box"
+		"7":
+			ATTRIBUTE = "unspawnable"
+		"8":
+			ATTRIBUTE = "camera_switch"
 		"9":
 			ATTRIBUTE = "start_position"
 		_:
@@ -195,6 +209,8 @@ func tile_spawn(x, y, MODE, cell):
 	NODE_COUNTER += 1
 	var CURRENT_TILE
 	if MODE == "3d":
+		if MODE_EXCLUSIVE == "2d":
+			return
 		# create a VIEW_3D node to attach all 3d nodes to
 		if not get_node_or_null("/root/hmls/VIEW_3D"):
 			var NODE_3D = Node3D.new()
@@ -206,14 +222,19 @@ func tile_spawn(x, y, MODE, cell):
 		var material = StandardMaterial3D.new()
 		material.albedo_color = COLOR
 		CURRENT_TILE.mesh.surface_set_material(0, material)
-		CURRENT_TILE.position = Vector3(x, -0.1, y)
-		CURRENT_TILE.scale = Vector3(0.85, 0.1, 0.85)
+		
+		var TILE_GAP_SIZE = 0.85
+		var TILE_HEIGHT = 0.1
+		CURRENT_TILE.scale = Vector3(TILE_GAP_SIZE, TILE_HEIGHT, TILE_GAP_SIZE)
+		CURRENT_TILE.position = Vector3(x, -(TILE_HEIGHT / 2 + 0.03), y)
 		var COLLISION = CollisionShape3D.new()
 		COLLISION.shape = BoxShape3D.new()
 		COLLISION.name = str(x,"x",y,"_collision")
 		CURRENT_TILE.add_child(COLLISION)
 		get_node("/root/hmls/VIEW_3D").add_child(CURRENT_TILE)
 	if MODE == "2d":
+		if MODE_EXCLUSIVE == "3d":
+			return
 		if not get_node_or_null("/root/hmls/VIEW_2D"):
 			var NODE_2D = Node2D.new()
 			NODE_2D.name = str("VIEW_2D")
@@ -225,7 +246,6 @@ func tile_spawn(x, y, MODE, cell):
 		CURRENT_TILE.position = Vector2(x * TILE_SIZE_2D + 3, y * TILE_SIZE_2D + 3)
 		CURRENT_TILE.color = COLOR
 		get_node("/root/hmls/VIEW_2D").add_child(CURRENT_TILE)
-		#CURRENT_TILE.size = Vector2(TILE_SIZE_2D / 2, TILE_SIZE_2D / 2)
 		
 	# WARNING: changing the CURRENT_TILE.name var will break floor_check() function
 	CURRENT_TILE.name = str(x,"x",y)
@@ -266,6 +286,9 @@ func update_tiles(MODE):
 		# this is so that when we draw the 2d tiles, none of the RNG is re-generated
 		if CURRENT_LEVEL != []:
 			LEVEL_MATRIX = CURRENT_LEVEL
+			#LEVEL_HEIGHT = 0
+			#LEVEL_WIDTH = 0
+			LEVEL_RESOLUTION = Vector2(0,0)
 		# spawn individual tiles
 		var x = 0
 		var y = 0
@@ -286,9 +309,15 @@ func update_tiles(MODE):
 				tile_spawn(x, y, MODE, NEW_CELL)
 				# increment x so the next cell will be read correctly
 				x += 1
+				if x > LEVEL_RESOLUTION.x:
+					LEVEL_RESOLUTION.x += 1
+				#if x > LEVEL_WIDTH:
+				#	LEVEL_WIDTH += 1
 			# set x back to 0 and increment y to read the next row
 			x = 0
 			y += 1
+			if y > LEVEL_RESOLUTION.y:
+				LEVEL_RESOLUTION.y += 1
 		# reset the node counter so when 2d draws, the nodes start at 1
 		NODE_COUNTER = 0
 
