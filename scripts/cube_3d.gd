@@ -18,36 +18,35 @@ func round_vect3(data):
 	data.z = round(data.z * pow(10.0,0))
 	return data
 
-func match_orientation(direction):
-	direction = round_vect3(direction)
-	var NEW_COLOR
-	# this messy match statement is how to keep track of what color is facing up on the cube
-	match direction:
-		Vector3(0,0,0),Vector3(0,90,0),Vector3(0,-90,0),Vector3(0,-180,0),Vector3(0,180,0):
-			NEW_COLOR = "blue"
-		Vector3(0,0,-90),Vector3(0,-180,-90),Vector3(0,90,-90),Vector3(0,-90,-90),Vector3(0,180,-90):
-			NEW_COLOR = "red"
-		Vector3(0,0,180),Vector3(0,0,-180),Vector3(0,180,-180),Vector3(0,-180,180),Vector3(0,90,180),Vector3(0,-90,-180),Vector3(0,90,-180),Vector3(0,-90,180),Vector3(0, 180, 180),Vector3(0,-180,-180),Vector3(180,0,0),Vector3(-180,0,0):
-			NEW_COLOR = "orange"
-		Vector3(0,0,90),Vector3(0,90,90),Vector3(0,-90,90),Vector3(0,180,90),Vector3(0,-180,90):
-			NEW_COLOR = "yellow"
-		Vector3(-90,0,0),Vector3(-90,-90,0),Vector3(0,90,90),Vector3(-90,90,0),Vector3(-90,-180,0),Vector3(-90,180,0):
-			NEW_COLOR = "green"
-		Vector3(90,0,0),Vector3(90,-90,0),Vector3(90,90,0),Vector3(90,180,0),Vector3(90,-180,0):
-			NEW_COLOR = "purple"
-		_:
-			print()
-			print("WARNING:")
-			print(str("cube_3d.gd - match_orientation: color not found. ", direction))
-			NEW_COLOR = "null"
-	return NEW_COLOR
+# the input passed through to match_orientation is a Vector3 with xyz containting a Vector3
+func match_orientation(input):
+	# uncomment the lines below if the input has floating point errors
+	#input.x = round_vect3(input.x)
+	#input.y = round_vect3(input.y)
+	#input.z = round_vect3(input.z)
+	var RETURN_COLOR = "null"
+	if input.x.y == 1:
+		RETURN_COLOR = "yellow"
+	elif input.x.y == -1:
+		RETURN_COLOR = "red"
+	if input.y.y == 1:
+		RETURN_COLOR = "blue"
+	elif input.y.y == -1:
+		RETURN_COLOR = "orange"
+	if input.z.y == 1:
+		RETURN_COLOR = "green"
+	elif input.z.y == -1:
+		RETURN_COLOR = "purple"
+	if RETURN_COLOR == "null":
+		hmls.debug_message("cube_3d.gd - match_orientation()", str(input), 3)
+	return RETURN_COLOR
 
-var IS_ACTIVE = "false"
 # before actually rolling, we want check for the color of the tile we are rolling into
 # so this junk below will create a fake cube and roll it to find if we can even land there
 func fake_roll(dir):
 	if rolling:
 		return "false"
+	rolling = true
 	# create a FAKE_PIVOT mesh
 	var FAKE_PIVOT = Node3D.new()
 	FAKE_PIVOT.name = "FAKE_PIVOT"
@@ -69,13 +68,12 @@ func fake_roll(dir):
 			FAKE_PIVOT.transform.rotated_local(axis, PI/2), 0.000000001)
 	await tween.finished
 	var b = FAKE_MESH.global_transform.basis
+	#match_orientation_2(b.x,b.y,b.z)
 	FAKE_PIVOT.transform = Transform3D.IDENTITY
 	FAKE_MESH.position = Vector3(0, cube_size / 2, 0)
 	FAKE_MESH.global_transform.basis = b
 	# this will get the orientation of the FAKE_MESH after it has moved around and stuffs
-	FUTURE_ORIENTATION = round_vect3(FAKE_MESH.rotation_degrees)
-	# we use the orientation of the FAKE_MESH to determine what color would be on top if we move
-	FUTURE_ORIENTATION_COLOR = match_orientation(FUTURE_ORIENTATION)
+	FUTURE_ORIENTATION_COLOR = match_orientation(FAKE_MESH.global_transform.basis)
 	# we then delete the FAKE_PIVOT and FAKE_MESH
 	FAKE_PIVOT.queue_free()
 	# we need to get the properties of the tile we are moving into
@@ -85,13 +83,11 @@ func fake_roll(dir):
 	var CELL_DATA = hmls.LEVEL_MATRIX[CELL.y][CELL.x]
 	# we then take that CELL_DATA and get color and attributes of the tile we are trying to move to
 	var CHECK_COLOR = hmls.get_cell_data(CELL_DATA)
-	print()
-	print("attempted cube color: ", FUTURE_ORIENTATION_COLOR, " ", FUTURE_ORIENTATION)
-	print("attempted tile color: ", CHECK_COLOR[1])
-	print()
 	# if the tile color is gray, we cheat and say that the tile color is the color of our cube
 	if CHECK_COLOR[1] == "gray":
-		CHECK_COLOR[1] = FUTURE_ORIENTATION_COLOR
+		FUTURE_ORIENTATION_COLOR = CHECK_COLOR[1]
+		#CHECK_COLOR[1] = FUTURE_ORIENTATION_COLOR
+	rolling = false
 	# if the color of the tile we are trying to move into is the same as what our cube will be
 	if FUTURE_ORIENTATION_COLOR == CHECK_COLOR[1]:
 		if CHECK_COLOR[3] == "camera_switch":
@@ -99,8 +95,10 @@ func fake_roll(dir):
 				hmls.DYNAMIC_CAM = "false"
 			else:
 				hmls.DYNAMIC_CAM = "true"
+		hmls.debug_message("cube_3d.gd - fake_roll() - CHECK_COLOR", CHECK_COLOR,1)
 		return "true"
 	else:
+		hmls.debug_message("cube_3d.gd - fake_roll() - CHECK_COLOR",CHECK_COLOR,2)
 		return "false"
 
 func roll(dir):
@@ -115,14 +113,14 @@ func roll(dir):
 	if collision:
 		match int(collision.normal.x):
 			-1:
-				hmls.debug_message("cube_3d.gd - roll()","right side collision detected")
+				hmls.debug_message("cube_3d.gd - roll()","right side collision detected", 2)
 			1:
-				hmls.debug_message("cube_3d.gd - roll()","left side collision detected")
+				hmls.debug_message("cube_3d.gd - roll()","left side collision detected", 2)
 		match int(collision.normal.z):
 			-1:
-				hmls.debug_message("cube_3d.gd - roll()","bottom side collision detected")
+				hmls.debug_message("cube_3d.gd - roll()","bottom side collision detected", 2)
 			1:
-				hmls.debug_message("cube_3d.gd - roll()","top side collision detected")
+				hmls.debug_message("cube_3d.gd - roll()","top side collision detected", 2)
 		return
 	rolling = true
 	# Step 1: Offset the pivot.
@@ -140,10 +138,8 @@ func roll(dir):
 	pivot.transform = Transform3D.IDENTITY
 	mesh.position = Vector3(0, cube_size / 2, 0)
 	mesh.global_transform.basis = b
-	print(str("possible cube orientation stuff: ", b.x,b.y,b.z))
-	CURRENT_ORIENTATION = round_vect3(mesh.rotation_degrees)
-	CURRENT_ORIENTATION_COLOR = match_orientation(CURRENT_ORIENTATION)
-	hmls.debug_message("", str("CURRENT COLOR: ", CURRENT_ORIENTATION_COLOR))
+	CURRENT_ORIENTATION_COLOR = match_orientation(mesh.global_transform.basis)
+	hmls.debug_message("cube_3d.gd - roll() - CURRENT_ORIENTATION_COLOR", CURRENT_ORIENTATION_COLOR,1)
 	rolling = false
 	hmls.update_cube_position(Vector2(int(position.x), int(position.z)))
 
@@ -152,8 +148,13 @@ func _ready():
 	position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
 	hmls.update_cube_position(Vector2(position.x,position.z))
 
+var ORIGINAL_SPEED = speed
 # sloppy input management
-func _physics_process(delta):
+func _physics_process(_delta):
+	speed = ORIGINAL_SPEED
+	if Input.is_action_pressed("hmls_shift"):
+		speed = speed * 2
+		
 	if Input.is_action_pressed("forward"):
 		match str(hmls.floor_check(hmls.CUBE_POSITION.x, hmls.CUBE_POSITION.y - 1)):
 			"stop":
@@ -189,6 +190,7 @@ func _physics_process(delta):
 	if Input.is_action_just_pressed("reset"):
 		# uncomment the line below to force the RNG to be the same each reset
 		#hmls.update_rng_seed(hmls.get_default("RNG_SEED"))
+		hmls.debug_message("cube_3d.gd", "reset button pressed", 1)
 		hmls.update_tiles("reset")
 		position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
 		hmls.update_cube_position(Vector2(position.x,position.z))

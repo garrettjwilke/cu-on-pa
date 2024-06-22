@@ -1,17 +1,28 @@
 extends Node
 
-var DEBUG = true
-
+var DEBUG = false
+# setting DEBUG_SEVERITY can help isolate debug messages
+#   setting to 0 will show all debug messages
+var DEBUG_SEVERITY = 0
 var START_POSITION = Vector2(0,0)
 
 var MODE_EXCLUSIVE = "false"
 
 var DYNAMIC_CAM = "true"
 
-func debug_message(TYPE, MESSAGE):
+# when calling debug message, you need to set a severity
+# if the DEBUG_SEVERITY is set to 0, it will display all debug messages
+func debug_message(INFO, MESSAGE, SEVERITY):
 	if DEBUG == true:
-		print(TYPE)
-		print(MESSAGE)
+		# severity 0 shows all messages regardless of passed through severity
+		# set the above DEBUG_SEVERITY to the level of debug messages you want to see
+		var ORIGINAL_SEVERITY = DEBUG_SEVERITY
+		if DEBUG_SEVERITY == 0:
+			DEBUG_SEVERITY = SEVERITY
+		if DEBUG_SEVERITY == SEVERITY:
+			print("DEBUG_SEVERITY: ", SEVERITY, " | ", INFO)
+			print(MESSAGE)
+		DEBUG_SEVERITY = ORIGINAL_SEVERITY
 
 # set the tile size for the 2d tiles
 var TILE_SIZE_2D = get_default("TILE_SIZE_2D")
@@ -33,25 +44,26 @@ func round_to_dec(num):
 var CUBE_POSITION = Vector2()
 func update_cube_position(position):
 	CUBE_POSITION = position
-	debug_message("",str("cube position: ", CUBE_POSITION.x, " ", CUBE_POSITION.y))
+	debug_message("hmls.gd - update_cube_position()", CUBE_POSITION, 1)
 
 func floor_check(pos_x, pos_y):
 	var NODE_NAME = str(pos_x,"x",pos_y)
 	var NEXT_COLOR
 	for node in get_node("/root/hmls/VIEW_3D").get_children():
 		if not get_node_or_null(str("/root/hmls/VIEW_3D/",NODE_NAME)):
+			debug_message("hmls.gd - floor_check() - couldn't find node",str("/root/hmls/VIEW_3D/",NODE_NAME),2)
 			return "stop"
 	# if cube passes check, get the color of the next tile it is rolling into
 	NEXT_COLOR = LEVEL_MATRIX[pos_y][pos_x]
 	# if the next color is a 00 (ZZ) then stop
-	if str(NEXT_COLOR) == "ZZ":
-		return "stop"
+	#if str(NEXT_COLOR) == "ZZ":
+	#	return "stop"
 	return NEXT_COLOR
 
 # to transfer the 3d level to 2d, we keep track of the CURRENT_LEVEL
 var CURRENT_LEVEL = []
 func reset_current_level():
-	debug_message("hmls.reset_current_level()", "")
+	debug_message("hmls.reset_current_level()", "", 1)
 	CURRENT_LEVEL = []
 
 # pass a string through the get_default() function and get the default from data/defaults.json
@@ -118,7 +130,7 @@ func update_level():
 	LEVEL += 1
 	CURRENT_LEVEL = []
 	START_POSITION = Vector2(0,0)
-	debug_message("hmls.update_level()", str("level = ", LEVEL))
+	debug_message("hmls.update_level()", str("level = ", LEVEL), 1)
 
 # this will return COLOR and NAME
 func get_cell_data(cell):
@@ -128,6 +140,7 @@ func get_cell_data(cell):
 	# add 1 to the character count for every character in the current cell
 	for character in str(cell):
 		CHARACTER_COUNT += 1
+	
 	# if the character count is less than or greater than 2, skip it by setting a 00
 	if not CHARACTER_COUNT == 2:
 		cell = 00
@@ -198,10 +211,9 @@ func tile_spawn(x, y, MODE, cell):
 	# the get_cell_data() returns an array with html color codes and attributes
 	var CELL_DATA = get_cell_data(cell)
 	var COLOR = CELL_DATA[0]
-	# set the NAME based on the get_cell_data function
-	var NAME = CELL_DATA[1]
 	var ATTRIBUTE = CELL_DATA[3]
 	if ATTRIBUTE == "start_position":
+		print("wtf")
 		START_POSITION = Vector2(x,y)
 	if COLOR == "null":
 		return
@@ -296,8 +308,9 @@ func update_tiles(MODE):
 			for cell in row:
 				# check if level has RNG values set
 				var NEW_CELL = int(cell)
-				if NEW_CELL == 0:
-					NEW_CELL = "ZZ"
+				if str(NEW_CELL) == "9":
+					START_POSITION = Vector2(x,y)
+					NEW_CELL = int(00)
 					LEVEL_MATRIX[y][x] = NEW_CELL
 				if int(str(cell).left(1)) == 8:
 					# if level has RNG values set, change the cell to the new RNG value
