@@ -1,10 +1,15 @@
 # Cu-On-Pa
 
 TODO:
-	identify what color tile is beneath/around cube
-	identify what attribute a tile has based on where the cube is
-	set color detection for sides of cube
-	clean shit up
+* after tile color has been stepped on, clear tile and rebuild level
 
-Cube Physics:
-http://kidscancode.org/godot_recipes/4.x/3d/rolling_cube/
+* create attributes for the cube to interact with
+* create rules for the cube to interact with attributes
+
+* make a level editor
+
+* clean shit up
+	
+---
+
+Cube Physics: http://kidscancode.org/godot_recipes/4.x/3d/rolling_cube/

@@ -8,7 +8,7 @@ var DYNAMIC_CAM = true
 func _ready():
 	get_node("Camera3D/Label").add_theme_font_size_override("font_size", 8)
 	# not sure why but the print line below fixes the standalone 3d version
-	print("")
+	#print("")
 	hmls.update_tiles("3d")
 	# after updating the level tiles, set the cube position
 	var CUBE = get_node("Cube")
@@ -20,8 +20,8 @@ func _process(delta):
 		$Camera3D.position = lerp($Camera3D.position, $Cube.position + cam_offset, cam_speed * delta)
 		$Camera3D.rotation = Vector3(-0.3,0,0)
 	else:
-		$Camera3D.position = static_cam_offset
-		$Camera3D.rotation = Vector3(-0.3,0.4,0)
+		$Camera3D.position = lerp($Camera3D.position, static_cam_offset, cam_speed * delta)
+		$Camera3D.rotation = Vector3(-0.3,0,0)
 	if Input.is_action_just_pressed("ui_accept"):
 		if DYNAMIC_CAM == true:
 			DYNAMIC_CAM = false

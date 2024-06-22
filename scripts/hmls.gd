@@ -2,8 +2,6 @@ extends Node
 
 var DEBUG = true
 
-var RESOLUTION = get_default("RESOLUTION")
-
 var START_POSITION = Vector2(0,0)
 
 var MODE_EXCLUSIVE = "false"
@@ -46,6 +44,7 @@ func reset_current_level():
 	debug_message("hmls.reset_current_level()", "")
 	CURRENT_LEVEL = []
 
+# pass a string through the get_default() function and get the default from data/defaults.json
 func get_default(setting):
 	var file = FileAccess.open("res://data/defaults.json", FileAccess.READ)
 	var DEFAULTS = JSON.parse_string(file.get_as_text())
@@ -77,11 +76,23 @@ func get_default(setting):
 		"COLOR_YELLOW":
 			return DEFAULTS.COLOR_YELLOW
 
-# the 'new_rng_number' is created every time the 'rng()' function is run
-var new_rng_number = 0
+# you can control the outcome of the RNG with a seed
 var RNG_SEED = get_default("RNG_SEED")
 func update_rng_seed(new_seed):
 	RNG_SEED = new_seed
+
+# RNG number generator
+var new_rng_number = 0
+func rng(MIN, MAX):
+	new_rng_number += 1
+	var number = RandomNumberGenerator.new()
+	# combine the RNG number with the seed and you get a new_seed unique from the rest
+	# if we skip this, we run into a chance where the RNG produces the same result and the game breaks
+	var new_seed = str(RNG_SEED, str(new_rng_number)).hash()
+	number.randomize()
+	number.set_seed(new_seed)
+	number = number.randi_range(MIN, MAX)
+	return number
 
 # keep track of all the nodes that are spawned
 var mesh_spawn_names = []
@@ -90,16 +101,6 @@ func update_mesh_spawn_names(mesh_name):
 		mesh_spawn_names = []
 	else:
 		mesh_spawn_names.append(mesh_name)
-
-# RNG number generator
-func rng(MIN, MAX):
-	new_rng_number += 1
-	var number = RandomNumberGenerator.new()
-	var new_seed = str(RNG_SEED + str(new_rng_number)).hash()
-	number.randomize()
-	number.set_seed(new_seed)
-	number = number.randi_range(MIN, MAX)
-	return number
 
 # starting level
 var LEVEL = 0
@@ -224,6 +225,8 @@ func tile_spawn(x, y, MODE, cell):
 		CURRENT_TILE.position = Vector2(x * TILE_SIZE_2D + 3, y * TILE_SIZE_2D + 3)
 		CURRENT_TILE.color = COLOR
 		get_node("/root/hmls/VIEW_2D").add_child(CURRENT_TILE)
+		#CURRENT_TILE.size = Vector2(TILE_SIZE_2D / 2, TILE_SIZE_2D / 2)
+		
 	# WARNING: changing the CURRENT_TILE.name var will break floor_check() function
 	CURRENT_TILE.name = str(x,"x",y)
 	update_mesh_spawn_names(CURRENT_TILE.name)
@@ -291,6 +294,6 @@ func update_tiles(MODE):
 
 func _ready():
 	DisplayServer.window_set_title(get_default("WINDOW_TITLE"))
-	DisplayServer.window_set_size(RESOLUTION)
+	DisplayServer.window_set_size(get_default("RESOLUTION"))
 	update_level()
 

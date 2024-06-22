@@ -16,6 +16,7 @@ var FUTURE_ORIENTATION_COLOR = "blue"
 func round_to_dec(num, digit):
 	return round(num * pow(10.0, digit)) / pow(10.0, digit)
 
+# round vector3
 func round_vect3(data):
 	data.x = round(data.x * pow(10.0,0))
 	data.y = round(data.y * pow(10.0,0))
@@ -92,9 +93,8 @@ func fake_roll(dir):
 	print()
 	print("attempted cube color: ", FUTURE_ORIENTATION_COLOR, " ", FUTURE_ORIENTATION)
 	print("attempted tile color: ", CHECK_COLOR[1])
-	# if the color is gray, we should be able to move into it
+	# if the tile color is gray, we cheat and say that the tile color is the color of our cube
 	if CHECK_COLOR[1] == "gray":
-		# we set the color to the cube orientation color
 		CHECK_COLOR[1] = FUTURE_ORIENTATION_COLOR
 	# if the color of the tile we are trying to move into is the same as what our cube will be
 	if FUTURE_ORIENTATION_COLOR == CHECK_COLOR[1]:
