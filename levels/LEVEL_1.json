@@ -1,41 +1,6 @@
 {
-	"comment": [
-		"WARNING: any of the YELLOW text below does not actually affect the game
-		this is just so you can easily recognize what kind of tile you are making
-		
-		the first number defines the color. set a 0 to make a blank space
-		0x: empty space
-		1x: blank
-		2x: red
-		3x: green
-		4x: blue
-		5x: yellow
-		6x: purple
-		7x: orange
-		8x: RNG tile
-		
-		the second number is the attribute of the tile being placed
-		x0: sets a regular tile
-		x1: sets a bomb
-		x2: sets a box
-		x3: sets a key
-		
-		x7: sets the unspawnable attribute. unspawnable tiles wont randomly place  color on that tile
-		x8: sets the dynamic camera on/off
-		x9: sets the player spawn point. (if there are multiple spawn points in a livel, the last one will be used.)
-		"
-		,
-	],
-	"TILE_SIZE_2D" : 12,
+	"TILE_SIZE_2D" : 16,
 	"LEVEL_MATRIX" : [
-		[00,10,10,10,10,10,10,],
-		[10,03,10,10,10,10,10,10],
-		[10,10,10,10,40,10,10,10,10],
-		[10,10,10,00,00,00,00,00,32,00,00,00,00,10,10,10,10],
-		[00,00,00,00,70,20,10,10,10,20,10,10,78,20,40,10,10,53],
-		[00,00,00,00,10,10,10,10,00,00,00,00,00,10,10,10,10],
-		[00,00,00,00,10,10,10,10,00],
-		[00,00,00,00,10,10,10,10,10],
-		[62,00,00,00,00,00,00,00,09]
+		[80,70,70,70,30,70,70,70,70,99],
 	]
 }

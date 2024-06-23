@@ -4,6 +4,7 @@
 	"RESOLUTION": [1280,720],
 	"GAME_DIFFICULTY" : "hard",
 	"RNG_SEED" : "cu-on-pa rng test seed",
+	"COLOR_BLACK" : "#323232",
 	"COLOR_GRAY" : "#c5c5c5",
 	"COLOR_BLUE" : "#163ee2",
 	"COLOR_RED" : "#e21616",
@@ -27,4 +28,30 @@
 		[10,00,00,00,00,00,00, 00, 00,00,00,00, 00, 00,00,00,00, 00, 00,00,00,00,00,00,10],
 		[10,10,10,10,10,10,10, 10, 10,10,10,10, 10, 10,10,10,10, 10, 10,10,10,10,10,10,10]
 	],
+	"comment": [
+		"WARNING: any of the YELLOW text below does not actually affect the game
+		this is just so you can easily recognize what kind of tile you are making
+		
+		the first number defines the color. set a 0 to make a blank space
+		0x: empty space
+		1x: red
+		2x: green
+		3x: blue
+		4x: yellow
+		5x: purple
+		6x: orange
+		7x: RNG tile
+		8x: gray (can always be stepped on)
+		9x: black (can never be stepped on)
+		
+		the second number is the attribute of the tile being placed
+		x0: sets a regular tile
+		x1: sets a bomb
+		x2: sets a box
+		x3: sets a key
+		
+		x7: sets the unspawnable attribute. unspawnable tiles wont randomly place  color on that tile
+		x8: sets the dynamic camera on/off
+		x9: sets the player spawn point. (if there are multiple spawn points in a livel, the last one will be used.)"
+		],
 }

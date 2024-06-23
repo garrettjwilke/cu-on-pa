@@ -1,12 +1,10 @@
 extends Node
 
-var DEBUG = true
+var DEBUG = false
 # setting DEBUG_SEVERITY can help isolate debug messages
 #   setting to 0 will show all debug messages
-var DEBUG_SEVERITY = 2
+var DEBUG_SEVERITY = 0
 var START_POSITION = Vector2(0,0)
-
-var MODE_EXCLUSIVE = "false"
 
 var DYNAMIC_CAM = "true"
 
@@ -98,6 +96,8 @@ func get_default(setting):
 			return DEFAULTS.COLOR_RED
 		"COLOR_YELLOW":
 			return DEFAULTS.COLOR_YELLOW
+		"COLOR_BLACK":
+			return DEFAULTS.COLOR_BLACK
 
 # you can control the outcome of the RNG with a seed
 var RNG_SEED = get_default("RNG_SEED")
@@ -143,8 +143,8 @@ func get_cell_data(cell):
 		CHARACTER_COUNT += 1
 	
 	# if the character count is less than or greater than 2, skip it by setting a 00
-	if not CHARACTER_COUNT == 2:
-		cell = 00
+	#if not CHARACTER_COUNT == 2:
+	#	cell = 00
 	var COLOR
 	var NAME
 	var NEW_CELL = cell
@@ -152,35 +152,39 @@ func get_cell_data(cell):
 	# the json file has numbers that represent the colors/attributes listed here
 	# placing the sequence [1,2,3,4] will output the following colors:
 	# # gray, blue, red, green
-	match str(cell).left(1):
-		"0":
+	match int(str(cell).left(1)):
+		0:
 			COLOR = "null"
 			NAME = "null"
-		"1":
-			COLOR = get_default("COLOR_GRAY")
-			NAME = "gray"
-		"2":
+		1:
 			COLOR = get_default("COLOR_RED")
 			NAME = "red"
-		"3":
+		2:
 			COLOR = get_default("COLOR_GREEN")
 			NAME = "green"
-		"4":
+		3:
 			COLOR = get_default("COLOR_BLUE")
 			NAME = "blue"
-		"5":
+		4:
 			COLOR = get_default("COLOR_YELLOW")
 			NAME = "yellow"
-		"6":
+		5:
 			COLOR = get_default("COLOR_PURPLE")
 			NAME = "purple"
-		"7":
+		6:
 			COLOR = get_default("COLOR_ORANGE")
 			NAME = "orange"
-		"8":
+		7:
+			COLOR = get_default("COLOR_GRAY")
+			NAME = "gray"
+		8:
+			COLOR = get_default("COLOR_BLACK")
+			NAME = "black"
+		9:
+			print("NOW WHAT?")
 			# when RNG is set, we need a way to keep track of what the new tile color is
 			# so we get a random tile, and set the properties back in the level matrix
-			var NEW_DATA = get_cell_data(rng(1,7))
+			var NEW_DATA = get_cell_data(rng(1,6))
 			COLOR = NEW_DATA[0]
 			NAME = NEW_DATA[1]
 			NEW_CELL = NEW_DATA[2]
@@ -221,8 +225,6 @@ func tile_spawn(x, y, MODE, cell):
 	NODE_COUNTER += 1
 	var CURRENT_TILE
 	if MODE == "3d":
-		if MODE_EXCLUSIVE == "2d":
-			return
 		# create a VIEW_3D node to attach all 3d nodes to
 		if not get_node_or_null("/root/hmls/VIEW_3D"):
 			var NODE_3D = Node3D.new()
@@ -234,9 +236,9 @@ func tile_spawn(x, y, MODE, cell):
 		var material = StandardMaterial3D.new()
 		material.albedo_color = COLOR
 		CURRENT_TILE.mesh.surface_set_material(0, material)
-		var TILE_GAP_SIZE = 0.85
+		var TILE_SCALE = 0.85
 		var TILE_HEIGHT = 0.1
-		CURRENT_TILE.scale = Vector3(TILE_GAP_SIZE, TILE_HEIGHT, TILE_GAP_SIZE)
+		CURRENT_TILE.scale = Vector3(TILE_SCALE, TILE_HEIGHT, TILE_SCALE)
 		CURRENT_TILE.position = Vector3(x, -(TILE_HEIGHT / 2 + 0.03), y)
 		var COLLISION = CollisionShape3D.new()
 		COLLISION.shape = BoxShape3D.new()
@@ -256,8 +258,6 @@ func tile_spawn(x, y, MODE, cell):
 				hmls.update_mesh_spawn_names(NEW_BOX.name)
 				debug_message("hmls.gd - tile_spawn() - ATTRIBUTE",ATTRIBUTE,1)
 	if MODE == "2d":
-		if MODE_EXCLUSIVE == "3d":
-			return
 		if not get_node_or_null("/root/hmls/VIEW_2D"):
 			var NODE_2D = Node2D.new()
 			NODE_2D.name = str("VIEW_2D")
@@ -297,8 +297,10 @@ func update_tiles(MODE):
 			LEVEL_MATRIX = get_default("LEVEL_MATRIX")
 	# if reset, then delete all nodes and update_tiles for 3d and 2d
 	if MODE == "reset":
-		remove_child(get_node_or_null("/root/hmls/VIEW_2D"))
-		remove_child(get_node_or_null("/root/hmls/VIEW_3D"))
+		if get_node_or_null("/root/hmls/VIEW_2D"):
+			#get_node("/root/hmls/VIEW_2D").queue_free()
+			remove_child(get_node("/root/hmls/VIEW_2D"))
+		remove_child(get_node("/root/hmls/VIEW_3D"))
 		update_mesh_spawn_names("!!delete")
 		# set CURRENT_LEVEL to empty and fill it with 3d, then 2d
 		CURRENT_LEVEL = []
@@ -309,9 +311,7 @@ func update_tiles(MODE):
 		# this is so that when we draw the 2d tiles, none of the RNG is re-generated
 		if CURRENT_LEVEL != []:
 			LEVEL_MATRIX = CURRENT_LEVEL
-			#LEVEL_HEIGHT = 0
-			#LEVEL_WIDTH = 0
-			LEVEL_RESOLUTION = Vector2(0,0)
+		LEVEL_RESOLUTION = Vector2(0,0)
 		# spawn individual tiles
 		var x = 0
 		var y = 0
@@ -319,15 +319,11 @@ func update_tiles(MODE):
 			for cell in row:
 				# check if level has RNG values set
 				var NEW_CELL = int(cell)
-				if str(NEW_CELL) == "9":
-					START_POSITION = Vector2(x,y)
-					NEW_CELL = int(00)
-					LEVEL_MATRIX[y][x] = NEW_CELL
-				if int(str(cell).left(1)) == 8:
+				if str(cell).left(1) == "9":
 					# if level has RNG values set, change the cell to the new RNG value
-					NEW_CELL = int(str(rng(1, 7),str(cell).right(1)))
+					NEW_CELL = int(str(rng(1, 6),str(cell).right(1)))
 					# set the NEW_CELL value to the LEVEL_MATRIX
-					LEVEL_MATRIX[y][x] = int(str(NEW_CELL))
+					LEVEL_MATRIX[y][x] = NEW_CELL
 				# set CURRENT_LEVEL so that when 2d level is spawned, the RNG stays the same
 				CURRENT_LEVEL = LEVEL_MATRIX
 				tile_spawn(x, y, MODE, NEW_CELL)
@@ -335,8 +331,6 @@ func update_tiles(MODE):
 				x += 1
 				if x > LEVEL_RESOLUTION.x:
 					LEVEL_RESOLUTION.x += 1
-				#if x > LEVEL_WIDTH:
-				#	LEVEL_WIDTH += 1
 			# set x back to 0 and increment y to read the next row
 			x = 0
 			y += 1
