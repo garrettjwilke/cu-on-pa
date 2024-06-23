@@ -1,8 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://d0qkbl33uofmb"]
+[gd_scene load_steps=6 format=3 uid="uid://d0qkbl33uofmb"]
 
-[ext_resource type="Script" path="res://scripts/base_3d.gd" id="1_wpaoh"]
+[ext_resource type="Script" path="res://scripts/view_3d.gd" id="1_wpaoh"]
 [ext_resource type="PackedScene" uid="uid://c5a2v6m2bufp0" path="res://scenes/3d/cube_3d.tscn" id="2_x1n4d"]
-[ext_resource type="PackedScene" uid="uid://b5pdsfy7gdqx8" path="res://scenes/3d/block_3d.tscn" id="3_pxyfd"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_m7yul"]
 sky_top_color = Color(0.290196, 0.447059, 0.701961, 1)
@@ -45,6 +44,3 @@ Enter: Cam Switch"
 
 [node name="Cube" parent="." instance=ExtResource("2_x1n4d")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.08165e-12, 2.08165e-12, 2.08165e-12)
-
-[node name="Block" parent="." instance=ExtResource("3_pxyfd")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0.5, 2.08165e-12)

@@ -82,23 +82,35 @@ func fake_roll(dir):
 	# this will give us the value in the x and y coordinates of our LEVEL_MATRIX
 	var CELL_DATA = hmls.LEVEL_MATRIX[CELL.y][CELL.x]
 	# we then take that CELL_DATA and get color and attributes of the tile we are trying to move to
-	var CHECK_COLOR = hmls.get_cell_data(CELL_DATA)
+	var CHECK_TILE = hmls.get_cell_data(CELL_DATA)
 	# if the tile color is gray, we cheat and say that the tile color is the color of our cube
-	if CHECK_COLOR[1] == "gray":
-		FUTURE_ORIENTATION_COLOR = CHECK_COLOR[1]
+	if CHECK_TILE[1] == "gray":
+		FUTURE_ORIENTATION_COLOR = CHECK_TILE[1]
 		#CHECK_COLOR[1] = FUTURE_ORIENTATION_COLOR
 	rolling = false
 	# if the color of the tile we are trying to move into is the same as what our cube will be
-	if FUTURE_ORIENTATION_COLOR == CHECK_COLOR[1]:
-		if CHECK_COLOR[3] == "camera_switch":
-			if hmls.DYNAMIC_CAM == "true":
-				hmls.DYNAMIC_CAM = "false"
-			else:
-				hmls.DYNAMIC_CAM = "true"
-		hmls.debug_message("cube_3d.gd - fake_roll() - CHECK_COLOR", CHECK_COLOR,1)
+	if FUTURE_ORIENTATION_COLOR == CHECK_TILE[1]:
+		match CHECK_TILE[3]:
+			"camera_switch":
+				if hmls.DYNAMIC_CAM == "true":
+					hmls.DYNAMIC_CAM = "false"
+				else:
+					hmls.DYNAMIC_CAM = "true"
+			"key":
+				hmls.KEY_COUNT += 1
+				hmls.debug_message("cube_3d.gd - fake_roll() - hmls.KEY_COUNT",hmls.KEY_COUNT,1)
+			"box":
+				if hmls.KEY_COUNT < 1:
+					hmls.KEY_COUNT = 0
+					return
+				hmls.KEY_COUNT -= 1
+				var NODE_NAME = str("/root/hmls/VIEW_3D/",CELL.x,"x",CELL.y,"_box")
+				if get_node_or_null(NODE_NAME):
+					get_node(NODE_NAME).queue_free()
+		hmls.debug_message("cube_3d.gd - fake_roll() - CHECK_COLOR", CHECK_TILE,1)
 		return "true"
 	else:
-		hmls.debug_message("cube_3d.gd - fake_roll() - CHECK_COLOR",CHECK_COLOR,2)
+		hmls.debug_message("cube_3d.gd - fake_roll() - CHECK_COLOR",CHECK_TILE,2)
 		return "false"
 
 func roll(dir):

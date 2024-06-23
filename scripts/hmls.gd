@@ -1,14 +1,18 @@
 extends Node
 
-var DEBUG = false
+var DEBUG = true
 # setting DEBUG_SEVERITY can help isolate debug messages
 #   setting to 0 will show all debug messages
-var DEBUG_SEVERITY = 0
+var DEBUG_SEVERITY = 2
 var START_POSITION = Vector2(0,0)
 
 var MODE_EXCLUSIVE = "false"
 
 var DYNAMIC_CAM = "true"
+
+var BOX_MESH = preload("res://scenes/3d/block_3d.tscn")
+
+var KEY_COUNT = 0
 
 # when calling debug message, you need to set a severity
 # if the DEBUG_SEVERITY is set to 0, it will display all debug messages
@@ -190,9 +194,9 @@ func get_cell_data(cell):
 		"1":
 			ATTRIBUTE = "bomb"
 		"2":
-			ATTRIBUTE = "lightning"
-		"3":
 			ATTRIBUTE = "box"
+		"3":
+			ATTRIBUTE = "key"
 		"7":
 			ATTRIBUTE = "unspawnable"
 		"8":
@@ -210,7 +214,6 @@ func tile_spawn(x, y, MODE, cell):
 	var COLOR = CELL_DATA[0]
 	var ATTRIBUTE = CELL_DATA[3]
 	if ATTRIBUTE == "start_position":
-		print("wtf")
 		START_POSITION = Vector2(x,y)
 	if COLOR == "null":
 		return
@@ -231,7 +234,6 @@ func tile_spawn(x, y, MODE, cell):
 		var material = StandardMaterial3D.new()
 		material.albedo_color = COLOR
 		CURRENT_TILE.mesh.surface_set_material(0, material)
-		
 		var TILE_GAP_SIZE = 0.85
 		var TILE_HEIGHT = 0.1
 		CURRENT_TILE.scale = Vector3(TILE_GAP_SIZE, TILE_HEIGHT, TILE_GAP_SIZE)
@@ -241,6 +243,18 @@ func tile_spawn(x, y, MODE, cell):
 		COLLISION.name = str(x,"x",y,"_collision")
 		CURRENT_TILE.add_child(COLLISION)
 		get_node("/root/hmls/VIEW_3D").add_child(CURRENT_TILE)
+		match ATTRIBUTE:
+			"box":
+				var NEW_BOX = BOX_MESH.instantiate()
+				NEW_BOX.name = str(x,"x",y,"_box")
+				NEW_BOX.position = Vector3(x,0.5,y)
+				material = load("res://textures/block_3d_texture.tres")
+				var new_material = material.duplicate()
+				new_material.albedo_color = COLOR
+				get_node("/root/hmls/VIEW_3D/").add_child(NEW_BOX)
+				get_node(str("/root/hmls/VIEW_3D/",NEW_BOX.name,"/MeshInstance3D")).mesh.surface_set_material(0, new_material)
+				hmls.update_mesh_spawn_names(NEW_BOX.name)
+				debug_message("hmls.gd - tile_spawn() - ATTRIBUTE",ATTRIBUTE,1)
 	if MODE == "2d":
 		if MODE_EXCLUSIVE == "3d":
 			return
