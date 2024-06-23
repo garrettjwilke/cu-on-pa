@@ -1,6 +1,6 @@
 extends Node3D
 
-var cam_offset = Vector3(0, 4, 8)
+var cam_offset = Vector3(0, 8, 8)
 var static_cam_offset = Vector3(0,0,0)
 var cam_speed = 3
 
@@ -19,7 +19,7 @@ func _process(delta):
 		if get_node_or_null("/root/hmls/VIEW_2D"):
 			get_node("/root/hmls/VIEW_2D").show()
 		$Camera3D.position = lerp($Camera3D.position, $Cube.position + cam_offset, cam_speed * delta)
-		$Camera3D.rotation = lerp($Camera3D.rotation, Vector3(-0.3,0,0), cam_speed * delta)
+		$Camera3D.rotation = lerp($Camera3D.rotation, Vector3(-0.6,0,0), cam_speed * delta)
 	else:
 		if get_node_or_null("/root/hmls/VIEW_2D"):
 			get_node("/root/hmls/VIEW_2D").hide()

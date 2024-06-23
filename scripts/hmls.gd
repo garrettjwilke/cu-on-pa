@@ -15,7 +15,6 @@ var DYNAMIC_CAM = "true"
 func debug_message(INFO, MESSAGE, SEVERITY):
 	if DEBUG == true:
 		# severity 0 shows all messages regardless of passed through severity
-		# set the above DEBUG_SEVERITY to the level of debug messages you want to see
 		var ORIGINAL_SEVERITY = DEBUG_SEVERITY
 		if DEBUG_SEVERITY == 0:
 			DEBUG_SEVERITY = SEVERITY
@@ -29,10 +28,8 @@ var TILE_SIZE_2D = get_default("TILE_SIZE_2D")
 
 # this will get set with the level data later
 var LEVEL_MATRIX = []
-# LEVEL_WIDTH and LEVEL_HEIGHT are calculated when spawning tiles
+# other parts of the game need to know the dimensions of the level. this is added up as we spawn tiles
 var LEVEL_RESOLUTION = Vector2(0,0)
-#var LEVEL_WIDTH = 0
-#var LEVEL_HEIGHT = 0
 # every time a tile is spawned, this NODE_COUNTER goes up
 var NODE_COUNTER = 0
 
