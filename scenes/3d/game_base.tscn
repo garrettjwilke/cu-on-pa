@@ -1,7 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://bskuaccs80wcn"]
+[gd_scene load_steps=2 format=3 uid="uid://bskuaccs80wcn"]
 
 [ext_resource type="PackedScene" uid="uid://d0qkbl33uofmb" path="res://scenes/3d/view_3d.tscn" id="1_msgmu"]
-[ext_resource type="PackedScene" uid="uid://d0kb0m1cengho" path="res://scenes/2d/view_2d.tscn" id="2_uuhi1"]
 
 [node name="GAME_BASE" type="Node3D"]
 
@@ -28,5 +27,3 @@ disable_3d = true
 transparent_bg = true
 handle_input_locally = false
 render_target_update_mode = 4
-
-[node name="base_2d" parent="view_2d/CenterContainer/SubViewportContainer/SubViewport" instance=ExtResource("2_uuhi1")]

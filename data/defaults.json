@@ -1,8 +1,9 @@
 {
 	"WINDOW_TITLE" : "Cu-On-Pa",
 	"TILE_SIZE_2D" : 4,
-	"RESOLUTION": [1280,720],
+	"RESOLUTION" : [1280,720],
 	"GAME_DIFFICULTY" : "hard",
+	"GAME_MODE" : "classic",
 	"RNG_SEED" : "cu-on-pa rng test seed",
 	"COLOR_BLACK" : "#323232",
 	"COLOR_GRAY" : "#c5c5c5",
@@ -28,16 +29,11 @@
 		this is just so you can easily recognize what kind of tile you are making
 		
 		the first number defines the color. set a 0 to make a blank space
-		0x: empty space
-		1x: gray (can always be stepped on)
-		2x: red
-		3x: green
-		4x: blue
-		5x: yellow
-		6x: purple
-		7x: orange
-		8x: black (can never be stepped on)
-		9x: RNG tile
+		0x: empty space    5x: yellow
+		1x: gray           6x: purple
+		2x: red            7x: orange
+		3x: green          8x: black
+		4x: blue           9x: RNG tile
 		
 		the second number is the attribute of the tile being placed
 		x0: sets a regular tile

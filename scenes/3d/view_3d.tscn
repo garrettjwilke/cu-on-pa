@@ -1,7 +1,6 @@
-[gd_scene load_steps=7 format=3 uid="uid://d0qkbl33uofmb"]
+[gd_scene load_steps=6 format=3 uid="uid://d0qkbl33uofmb"]
 
 [ext_resource type="Script" path="res://scripts/view_3d.gd" id="1_wpaoh"]
-[ext_resource type="Script" path="res://scripts/camera.gd" id="2_l2e4n"]
 [ext_resource type="PackedScene" uid="uid://c5a2v6m2bufp0" path="res://scenes/3d/cube_3d.tscn" id="2_x1n4d"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_m7yul"]
@@ -31,16 +30,17 @@ environment = SubResource("Environment_gyr2i")
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 3.5, 7)
 fov = 44.5
-script = ExtResource("2_l2e4n")
 
 [node name="Label" type="Label" parent="Camera3D"]
 custom_minimum_size = Vector2(75, 75)
-offset_left = 364.0
-offset_top = 1.0
-offset_right = 515.0
-offset_bottom = 102.0
-text = "Keybinds:
-R : Regenerate RNG
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -170.0
+offset_bottom = 101.0
+grow_horizontal = 0
+text = "------    Keybinds:    ------
+R : Regenerate RNG 
 N : Load Next Level
 Enter: Cam Switch"
 

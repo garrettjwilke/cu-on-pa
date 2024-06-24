@@ -189,7 +189,6 @@ func _physics_process(_delta):
 		hmls.debug_message("cube_3d.gd", "reset button pressed", 1)
 		hmls.update_tiles("reset")
 		hmls.update_tiles("3d")
-		#hmls.update_tiles("2d")
 		position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
 		hmls.update_cube_position(Vector2(position.x,position.z))
 		mesh.rotation_degrees = Vector3(0,0,0)
@@ -197,7 +196,6 @@ func _physics_process(_delta):
 		hmls.update_level()
 		hmls.update_tiles("reset")
 		hmls.update_tiles("3d")
-		#hmls.update_tiles("2d")
 		# set the position and then pass position to hmls.update_cube_position
 		# if we don't do this, the cube can end up on a bad tile
 		position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)

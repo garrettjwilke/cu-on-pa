@@ -12,6 +12,9 @@ var BOX_MESH = preload("res://scenes/3d/block_3d.tscn")
 
 var KEY_COUNT = 0
 
+# this is set after the level matrix has been loaded
+var CURRENT_LEVEL = []
+
 # when calling debug message, you need to set a severity
 # if the DEBUG_SEVERITY is set to 0, it will display all debug messages
 func debug_message(INFO, MESSAGE, SEVERITY):
@@ -25,8 +28,6 @@ func debug_message(INFO, MESSAGE, SEVERITY):
 			print(MESSAGE)
 		DEBUG_SEVERITY = ORIGINAL_SEVERITY
 
-# set the tile size for the 2d tiles
-var TILE_SIZE_2D = get_default("TILE_SIZE_2D")
 
 # this will get set with the level data later
 var LEVEL_MATRIX = []
@@ -59,12 +60,6 @@ func floor_check(pos_x, pos_y):
 	#	return "stop"
 	return NEXT_COLOR
 
-# to transfer the 3d level to 2d, we keep track of the CURRENT_LEVEL
-var CURRENT_LEVEL = []
-func reset_current_level():
-	debug_message("hmls.reset_current_level()", "", 1)
-	CURRENT_LEVEL = []
-
 # pass a string through the get_default() function and get the default from data/defaults.json
 func get_default(setting):
 	var file = FileAccess.open("res://data/defaults.json", FileAccess.READ)
@@ -74,8 +69,6 @@ func get_default(setting):
 			return DEFAULTS.WINDOW_TITLE
 		"RNG_SEED":
 			return DEFAULTS.RNG_SEED
-		"TILE_SIZE_2D":
-			return DEFAULTS.TILE_SIZE_2D
 		"RESOLUTION":
 			return Vector2(DEFAULTS.RESOLUTION[0], DEFAULTS.RESOLUTION[1])
 		"GAME_DIFFICULTY":
@@ -98,6 +91,10 @@ func get_default(setting):
 			return DEFAULTS.COLOR_YELLOW
 		"COLOR_BLACK":
 			return DEFAULTS.COLOR_BLACK
+		"GAME_MODE":
+			return DEFAULTS.GAME_MODE
+
+var GAME_MODE = get_default("GAME_MODE")
 
 # you can control the outcome of the RNG with a seed
 var RNG_SEED = get_default("RNG_SEED")
@@ -131,6 +128,7 @@ func update_level():
 	LEVEL += 1
 	CURRENT_LEVEL = []
 	START_POSITION = Vector2(0,0)
+	KEY_COUNT = 0
 	debug_message("hmls.update_level()", str("level = ", LEVEL), 1)
 
 # this will return COLOR and NAME
@@ -261,26 +259,13 @@ func tile_spawn(x, y, MODE, cell):
 				var new_material = material.duplicate()
 				new_material.albedo_color = COLOR
 				get_node(str("/root/hmls/VIEW_3D/",CURRENT_TILE.name)).mesh.surface_set_material(0, new_material)
-	if MODE == "2d":
-		if not get_node_or_null("/root/hmls/VIEW_2D"):
-			var NODE_2D = Node2D.new()
-			NODE_2D.name = str("VIEW_2D")
-			get_node("/root/hmls").add_child(NODE_2D)
-			get_node("/root/hmls/VIEW_2D").hide()
-			hmls.update_mesh_spawn_names(NODE_2D.name)
-		CURRENT_TILE = ColorRect.new()
-		CURRENT_TILE.name = str(x,"x",y)
-		CURRENT_TILE.size = Vector2(TILE_SIZE_2D - 1, TILE_SIZE_2D - 1)
-		CURRENT_TILE.position = Vector2(x * TILE_SIZE_2D + 3, y * TILE_SIZE_2D + 3)
-		CURRENT_TILE.color = COLOR
-		get_node("/root/hmls/VIEW_2D").add_child(CURRENT_TILE)
 		
 	# WARNING: changing the CURRENT_TILE.name var will break floor_check() function
 	CURRENT_TILE.name = str(x,"x",y)
 	update_mesh_spawn_names(CURRENT_TILE.name)
 
 func load_level():
-	# if the CURRENT_LEVEL is not empty, set last LEVEL_MATRIX
+	# if the CURRENT_LEVEL has data, set the LEVEL_MATRIX
 	# this is so that when we redraw the tiles, the RNG is not set to a new value
 	if CURRENT_LEVEL != []:
 		LEVEL_MATRIX = CURRENT_LEVEL
@@ -289,16 +274,10 @@ func load_level():
 	var LEVEL_STRING = str("res://levels/LEVEL_", LEVEL, ".json")
 	if not FileAccess.file_exists(LEVEL_STRING):
 		LEVEL_MATRIX = get_default("LEVEL_MATRIX")
-		TILE_SIZE_2D = get_default("TILE_SIZE_2D")
 		LEVEL = 0
 	else:
 		var file = FileAccess.open(LEVEL_STRING, FileAccess.READ)
 		var level_data = JSON.parse_string(file.get_as_text())
-		# check if the level json has TILE_SIZE_2D
-		if level_data.has("TILE_SIZE_2D"):
-			TILE_SIZE_2D = level_data.TILE_SIZE_2D
-		else:
-			TILE_SIZE_2D = get_default("TILE_SIZE_2D")
 		# check if level json even has level data
 		if level_data.has("LEVEL_MATRIX"):
 			LEVEL_MATRIX = level_data.LEVEL_MATRIX
@@ -312,13 +291,9 @@ func update_tiles(MODE):
 		update_tiles("reset")
 		CURRENT_LEVEL = TEMP_MATRIX
 		update_tiles("3d")
-		#update_tiles("2d")
 		return
-	# if reset, then delete all nodes and update_tiles for 3d and 2d
+	# if reset, then delete all nodes and set CURRENT_LEVEL to nothing
 	if MODE == "reset":
-		#if get_node_or_null("/root/hmls/VIEW_2D"):
-		#	#get_node("/root/hmls/VIEW_2D").queue_free()
-		#	remove_child(get_node("/root/hmls/VIEW_2D"))
 		remove_child(get_node("/root/hmls/VIEW_3D"))
 		update_mesh_spawn_names("!!delete")
 		CURRENT_LEVEL = []
@@ -339,7 +314,7 @@ func update_tiles(MODE):
 				NEW_CELL = str(str(rng(1, 6),str(cell).right(1)))
 				# set the NEW_CELL value to the LEVEL_MATRIX
 				LEVEL_MATRIX[y][x] = NEW_CELL
-			# set CURRENT_LEVEL so that when 2d level is spawned, the RNG stays the same
+			# set CURRENT_LEVEL so that when tiles are updated, we are no longer regenerating RNG
 			CURRENT_LEVEL = LEVEL_MATRIX
 			tile_spawn(x, y, MODE, NEW_CELL)
 			# increment x so the next cell will be read correctly
@@ -351,7 +326,7 @@ func update_tiles(MODE):
 		y += 1
 		if y > LEVEL_RESOLUTION.y:
 			LEVEL_RESOLUTION.y += 1
-	# reset the node counter so when 2d draws, the nodes start at 1
+	# reset the node counter after all tiles have spawned
 	NODE_COUNTER = 0
 
 func _ready():
