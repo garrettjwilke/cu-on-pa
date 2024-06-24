@@ -1,6 +1,6 @@
 {
 	"WINDOW_TITLE" : "Cu-On-Pa",
-	"TILE_SIZE_2D" : 8,
+	"TILE_SIZE_2D" : 4,
 	"RESOLUTION": [1280,720],
 	"GAME_DIFFICULTY" : "hard",
 	"RNG_SEED" : "cu-on-pa rng test seed",
@@ -13,36 +13,31 @@
 	"COLOR_PURPLE" : "#ff00ca",
 	"COLOR_ORANGE" : "#fd7d01",
 	"LEVEL_MATRIX" : [
-		[11,21,31,41],
-		[10,10,10,10],
-		[10,10,10,10],
-		[10,10,19,10],
-		[18,00,00,00],
-		[10,10,10,10,10,10,10, 10, 10,10,10,10, 10, 10,10,10,10, 10, 10,10,10,10,10,10,10],
-		[10,00,00,00,00,00,00, 00, 00,00,00,00, 00, 00,00,00,00, 00, 00,00,00,00,00,00,10],
-		[10,00,80,80,80,80,80, 00, 80,80,80,80, 00, 00,80,80,00, 00, 80,80,80,80,80,00,10],
-		[10,00,00,00,80,00,00, 00, 80,00,00,00, 00, 80,00,00,00, 00, 00,00,80,00,00,00,10],
-		[10,00,00,00,80,00,00, 00, 80,80,80,00, 00, 00,80,80,00, 00, 00,00,80,00,00,00,10],
-		[10,00,00,00,80,00,00, 00, 80,00,00,00, 00, 00,00,00,80, 00, 00,00,80,00,00,00,10],
-		[10,00,00,00,80,00,00, 00, 80,80,80,80, 00, 00,80,80,00, 00, 00,00,80,00,00,00,10],
-		[10,00,00,00,00,00,00, 00, 00,00,00,00, 00, 00,00,00,00, 00, 00,00,00,00,00,00,10],
-		[10,10,10,10,10,10,10, 10, 10,10,10,10, 10, 10,10,10,10, 10, 10,10,10,10,10,10,10]
-	],
+		["00","10","20","30","40","50","60","70","80","90"],
+		["00"],
+		["01","11","21","31","41","51","61","71","81","91"],
+		["00"],
+		["02","12","72","22","42","52","62","72","82","92"],
+		["80","10","10","10","10"],
+		["48","10","10","10","09"],
+		["80","10","10","10","10"],
+		["80","53","80"]
+		],
 	"comment": [
 		"WARNING: any of the YELLOW text below does not actually affect the game
 		this is just so you can easily recognize what kind of tile you are making
 		
 		the first number defines the color. set a 0 to make a blank space
 		0x: empty space
-		1x: red
-		2x: green
-		3x: blue
-		4x: yellow
-		5x: purple
-		6x: orange
-		7x: RNG tile
-		8x: gray (can always be stepped on)
-		9x: black (can never be stepped on)
+		1x: gray (can always be stepped on)
+		2x: red
+		3x: green
+		4x: blue
+		5x: yellow
+		6x: purple
+		7x: orange
+		8x: black (can never be stepped on)
+		9x: RNG tile
 		
 		the second number is the attribute of the tile being placed
 		x0: sets a regular tile

@@ -46,12 +46,14 @@ func update_cube_position(position):
 	debug_message("hmls.gd - update_cube_position()", CUBE_POSITION, 1)
 
 func floor_check(pos_x, pos_y):
+	print(pos_x," ", pos_y)
 	var NODE_NAME = str(pos_x,"x",pos_y)
 	var NEXT_COLOR
 	for node in get_node("/root/hmls/VIEW_3D").get_children():
 		if not get_node_or_null(str("/root/hmls/VIEW_3D/",NODE_NAME)):
 			debug_message("hmls.gd - floor_check() - couldn't find node",str("/root/hmls/VIEW_3D/",NODE_NAME),2)
 			return "stop"
+	print("wtf: ", pos_x,pos_y)
 	# if cube passes check, get the color of the next tile it is rolling into
 	NEXT_COLOR = LEVEL_MATRIX[pos_y][pos_x]
 	# if the next color is a 00 (ZZ) then stop
@@ -141,10 +143,9 @@ func get_cell_data(cell):
 	# add 1 to the character count for every character in the current cell
 	for character in str(cell):
 		CHARACTER_COUNT += 1
-	
 	# if the character count is less than or greater than 2, skip it by setting a 00
-	#if not CHARACTER_COUNT == 2:
-	#	cell = 00
+	if not CHARACTER_COUNT == 2:
+		cell = 00
 	var COLOR
 	var NAME
 	var NEW_CELL = cell
@@ -157,31 +158,31 @@ func get_cell_data(cell):
 			COLOR = "null"
 			NAME = "null"
 		1:
-			COLOR = get_default("COLOR_RED")
-			NAME = "red"
-		2:
-			COLOR = get_default("COLOR_GREEN")
-			NAME = "green"
-		3:
-			COLOR = get_default("COLOR_BLUE")
-			NAME = "blue"
-		4:
-			COLOR = get_default("COLOR_YELLOW")
-			NAME = "yellow"
-		5:
-			COLOR = get_default("COLOR_PURPLE")
-			NAME = "purple"
-		6:
-			COLOR = get_default("COLOR_ORANGE")
-			NAME = "orange"
-		7:
 			COLOR = get_default("COLOR_GRAY")
 			NAME = "gray"
+		2:
+			COLOR = get_default("COLOR_RED")
+			NAME = "red"
+		3:
+			COLOR = get_default("COLOR_GREEN")
+			NAME = "green"
+		4:
+			COLOR = get_default("COLOR_BLUE")
+			NAME = "blue"
+		5:
+			COLOR = get_default("COLOR_YELLOW")
+			NAME = "yellow"
+		6:
+			COLOR = get_default("COLOR_PURPLE")
+			NAME = "purple"
+		7:
+			COLOR = get_default("COLOR_ORANGE")
+			NAME = "orange"
 		8:
 			COLOR = get_default("COLOR_BLACK")
 			NAME = "black"
 		9:
-			print("NOW WHAT?")
+			print("hopefully this never prints - hmls.gd - get_cell_data()")
 			# when RNG is set, we need a way to keep track of what the new tile color is
 			# so we get a random tile, and set the properties back in the level matrix
 			var NEW_DATA = get_cell_data(rng(1,6))
@@ -257,11 +258,17 @@ func tile_spawn(x, y, MODE, cell):
 				get_node(str("/root/hmls/VIEW_3D/",NEW_BOX.name,"/MeshInstance3D")).mesh.surface_set_material(0, new_material)
 				hmls.update_mesh_spawn_names(NEW_BOX.name)
 				debug_message("hmls.gd - tile_spawn() - ATTRIBUTE",ATTRIBUTE,1)
+			"key":
+				material = load("res://textures/key_texture.tres")
+				var new_material = material.duplicate()
+				new_material.albedo_color = COLOR
+				get_node(str("/root/hmls/VIEW_3D/",CURRENT_TILE.name)).mesh.surface_set_material(0, new_material)
 	if MODE == "2d":
 		if not get_node_or_null("/root/hmls/VIEW_2D"):
 			var NODE_2D = Node2D.new()
 			NODE_2D.name = str("VIEW_2D")
 			get_node("/root/hmls").add_child(NODE_2D)
+			get_node("/root/hmls/VIEW_2D").hide()
 			hmls.update_mesh_spawn_names(NODE_2D.name)
 		CURRENT_TILE = ColorRect.new()
 		CURRENT_TILE.name = str(x,"x",y)
@@ -274,8 +281,12 @@ func tile_spawn(x, y, MODE, cell):
 	CURRENT_TILE.name = str(x,"x",y)
 	update_mesh_spawn_names(CURRENT_TILE.name)
 
-# this is the first function to run to spawn tiles
-func update_tiles(MODE):
+func load_level():
+	# if the CURRENT_LEVEL is not empty, set last LEVEL_MATRIX
+	# this is so that when we redraw the tiles, the RNG is not set to a new value
+	if CURRENT_LEVEL != []:
+		LEVEL_MATRIX = CURRENT_LEVEL
+		return
 	# check if the level exists and load it as LEVEL_MATRIX
 	var LEVEL_STRING = str("res://levels/LEVEL_", LEVEL, ".json")
 	if not FileAccess.file_exists(LEVEL_STRING):
@@ -295,49 +306,55 @@ func update_tiles(MODE):
 			LEVEL_MATRIX = level_data.LEVEL_MATRIX
 		else:
 			LEVEL_MATRIX = get_default("LEVEL_MATRIX")
+
+# this is the first function to run to spawn tiles
+func update_tiles(MODE):
+	if MODE == "reload":
+		var TEMP_MATRIX = CURRENT_LEVEL
+		update_tiles("reset")
+		CURRENT_LEVEL = TEMP_MATRIX
+		update_tiles("3d")
+		#update_tiles("2d")
+		return
 	# if reset, then delete all nodes and update_tiles for 3d and 2d
 	if MODE == "reset":
-		if get_node_or_null("/root/hmls/VIEW_2D"):
-			#get_node("/root/hmls/VIEW_2D").queue_free()
-			remove_child(get_node("/root/hmls/VIEW_2D"))
+		#if get_node_or_null("/root/hmls/VIEW_2D"):
+		#	#get_node("/root/hmls/VIEW_2D").queue_free()
+		#	remove_child(get_node("/root/hmls/VIEW_2D"))
 		remove_child(get_node("/root/hmls/VIEW_3D"))
 		update_mesh_spawn_names("!!delete")
-		# set CURRENT_LEVEL to empty and fill it with 3d, then 2d
 		CURRENT_LEVEL = []
-		update_tiles("3d")
-		update_tiles("2d")
-	else:
-		# if the CURRENT_LEVEL is not empty, set last LEVEL_MATRIX
-		# this is so that when we draw the 2d tiles, none of the RNG is re-generated
-		if CURRENT_LEVEL != []:
-			LEVEL_MATRIX = CURRENT_LEVEL
 		LEVEL_RESOLUTION = Vector2(0,0)
-		# spawn individual tiles
-		var x = 0
-		var y = 0
-		for row in LEVEL_MATRIX:
-			for cell in row:
-				# check if level has RNG values set
-				var NEW_CELL = int(cell)
-				if str(cell).left(1) == "9":
-					# if level has RNG values set, change the cell to the new RNG value
-					NEW_CELL = int(str(rng(1, 6),str(cell).right(1)))
-					# set the NEW_CELL value to the LEVEL_MATRIX
-					LEVEL_MATRIX[y][x] = NEW_CELL
-				# set CURRENT_LEVEL so that when 2d level is spawned, the RNG stays the same
-				CURRENT_LEVEL = LEVEL_MATRIX
-				tile_spawn(x, y, MODE, NEW_CELL)
-				# increment x so the next cell will be read correctly
-				x += 1
-				if x > LEVEL_RESOLUTION.x:
-					LEVEL_RESOLUTION.x += 1
-			# set x back to 0 and increment y to read the next row
-			x = 0
-			y += 1
-			if y > LEVEL_RESOLUTION.y:
-				LEVEL_RESOLUTION.y += 1
-		# reset the node counter so when 2d draws, the nodes start at 1
-		NODE_COUNTER = 0
+		return
+	load_level()
+	# spawn individual tiles
+	var x = 0
+	var y = 0
+	for row in LEVEL_MATRIX:
+		for cell in row:
+			# check if level has RNG values set
+			var NEW_CELL = cell
+			#if str(NEW_CELL).right(1) == "9":
+			#	START_POSITION = Vector2(x,y)
+			if str(cell).left(1) == "9":
+				# if level has RNG values set, change the cell to the new RNG value
+				NEW_CELL = str(str(rng(1, 6),str(cell).right(1)))
+				# set the NEW_CELL value to the LEVEL_MATRIX
+				LEVEL_MATRIX[y][x] = NEW_CELL
+			# set CURRENT_LEVEL so that when 2d level is spawned, the RNG stays the same
+			CURRENT_LEVEL = LEVEL_MATRIX
+			tile_spawn(x, y, MODE, NEW_CELL)
+			# increment x so the next cell will be read correctly
+			x += 1
+			if x > LEVEL_RESOLUTION.x:
+				LEVEL_RESOLUTION.x += 1
+		# set x back to 0 and increment y to read the next row
+		x = 0
+		y += 1
+		if y > LEVEL_RESOLUTION.y:
+			LEVEL_RESOLUTION.y += 1
+	# reset the node counter so when 2d draws, the nodes start at 1
+	NODE_COUNTER = 0
 
 func _ready():
 	DisplayServer.window_set_title(get_default("WINDOW_TITLE"))

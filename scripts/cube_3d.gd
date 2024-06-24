@@ -97,16 +97,21 @@ func fake_roll(dir):
 				else:
 					hmls.DYNAMIC_CAM = "true"
 			"key":
+				if hmls.KEY_COUNT < 1:
+					hmls.KEY_COUNT = 0
 				hmls.KEY_COUNT += 1
+				hmls.CURRENT_LEVEL[CELL.y][CELL.x] = 10
+				hmls.update_tiles("reload")
 				hmls.debug_message("cube_3d.gd - fake_roll() - hmls.KEY_COUNT",hmls.KEY_COUNT,1)
 			"box":
 				if hmls.KEY_COUNT < 1:
-					hmls.KEY_COUNT = 0
 					return
-				hmls.KEY_COUNT -= 1
 				var NODE_NAME = str("/root/hmls/VIEW_3D/",CELL.x,"x",CELL.y,"_box")
 				if get_node_or_null(NODE_NAME):
 					get_node(NODE_NAME).queue_free()
+					hmls.KEY_COUNT -= 1
+				hmls.CURRENT_LEVEL[CELL.y][CELL.x] = int(str(str(CELL_DATA).left(1),0))
+				hmls.update_tiles("reload")
 		hmls.debug_message("cube_3d.gd - fake_roll() - CHECK_COLOR", CHECK_TILE,1)
 		return "true"
 	else:
@@ -204,12 +209,16 @@ func _physics_process(_delta):
 		#hmls.update_rng_seed(hmls.get_default("RNG_SEED"))
 		hmls.debug_message("cube_3d.gd", "reset button pressed", 1)
 		hmls.update_tiles("reset")
+		hmls.update_tiles("3d")
+		#hmls.update_tiles("2d")
 		position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
 		hmls.update_cube_position(Vector2(position.x,position.z))
 		mesh.rotation_degrees = Vector3(0,0,0)
 	if Input.is_action_just_pressed("level_next"):
 		hmls.update_level()
 		hmls.update_tiles("reset")
+		hmls.update_tiles("3d")
+		#hmls.update_tiles("2d")
 		# set the position and then pass position to hmls.update_cube_position
 		# if we don't do this, the cube can end up on a bad tile
 		position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
