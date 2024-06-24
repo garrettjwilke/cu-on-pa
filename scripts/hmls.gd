@@ -46,14 +46,12 @@ func update_cube_position(position):
 	debug_message("hmls.gd - update_cube_position()", CUBE_POSITION, 1)
 
 func floor_check(pos_x, pos_y):
-	print(pos_x," ", pos_y)
 	var NODE_NAME = str(pos_x,"x",pos_y)
 	var NEXT_COLOR
 	for node in get_node("/root/hmls/VIEW_3D").get_children():
 		if not get_node_or_null(str("/root/hmls/VIEW_3D/",NODE_NAME)):
 			debug_message("hmls.gd - floor_check() - couldn't find node",str("/root/hmls/VIEW_3D/",NODE_NAME),2)
 			return "stop"
-	print("wtf: ", pos_x,pos_y)
 	# if cube passes check, get the color of the next tile it is rolling into
 	NEXT_COLOR = LEVEL_MATRIX[pos_y][pos_x]
 	# if the next color is a 00 (ZZ) then stop

@@ -20,10 +20,6 @@ func round_vect3(data):
 
 # the input passed through to match_orientation is a Vector3 with xyz containting a Vector3
 func match_orientation(input):
-	# uncomment the lines below if the input has floating point errors
-	#input.x = round_vect3(input.x)
-	#input.y = round_vect3(input.y)
-	#input.z = round_vect3(input.z)
 	var RETURN_COLOR = "null"
 	if input.x.y == 1:
 		RETURN_COLOR = "yellow"
@@ -68,7 +64,6 @@ func fake_roll(dir):
 			FAKE_PIVOT.transform.rotated_local(axis, PI/2), 0.000000001)
 	await tween.finished
 	var b = FAKE_MESH.global_transform.basis
-	#match_orientation_2(b.x,b.y,b.z)
 	FAKE_PIVOT.transform = Transform3D.IDENTITY
 	FAKE_MESH.position = Vector3(0, cube_size / 2, 0)
 	FAKE_MESH.global_transform.basis = b
@@ -171,39 +166,23 @@ func _physics_process(_delta):
 	speed = ORIGINAL_SPEED
 	if Input.is_action_pressed("hmls_shift"):
 		speed = speed * 2
-		
+	var DIR = Vector3.ZERO
 	if Input.is_action_pressed("forward"):
-		match str(hmls.floor_check(hmls.CUBE_POSITION.x, hmls.CUBE_POSITION.y - 1)):
-			"stop":
-				return
-		var CAN_ROLL = await fake_roll(Vector3.FORWARD)
-		if CAN_ROLL == "false":
-			return
-		roll(Vector3.FORWARD)
+		DIR = Vector3.FORWARD
 	if Input.is_action_pressed("back"):
-		match str(hmls.floor_check(hmls.CUBE_POSITION.x, hmls.CUBE_POSITION.y + 1)):
-			"stop":
-				return
-		var CAN_ROLL = await fake_roll(Vector3.BACK)
-		if CAN_ROLL == "false":
-			return
-		roll(Vector3.BACK)
+		DIR = Vector3.BACK
 	if Input.is_action_pressed("right"):
-		match str(hmls.floor_check(hmls.CUBE_POSITION.x + 1, hmls.CUBE_POSITION.y)):
-			"stop":
-				return
-		var CAN_ROLL = await fake_roll(Vector3.RIGHT)
-		if CAN_ROLL == "false":
-			return
-		roll(Vector3.RIGHT)
+		DIR = Vector3.RIGHT
 	if Input.is_action_pressed("left"):
-		match str(hmls.floor_check(hmls.CUBE_POSITION.x - 1, hmls.CUBE_POSITION.y)):
+		DIR = Vector3.LEFT
+	if not DIR == Vector3.ZERO:
+		match str(hmls.floor_check(hmls.CUBE_POSITION.x + DIR.x, hmls.CUBE_POSITION.y + DIR.z)):
 			"stop":
 				return
-		var CAN_ROLL = await fake_roll(Vector3.LEFT)
+		var CAN_ROLL = await fake_roll(DIR)
 		if CAN_ROLL == "false":
 			return
-		roll(Vector3.LEFT)
+		roll(DIR)
 	if Input.is_action_just_pressed("reset"):
 		# uncomment the line below to force the RNG to be the same each reset
 		#hmls.update_rng_seed(hmls.get_default("RNG_SEED"))
