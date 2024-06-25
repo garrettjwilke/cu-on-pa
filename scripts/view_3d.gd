@@ -15,7 +15,7 @@ func _ready():
 func _process(delta):
 	if hmls.DYNAMIC_CAM == "true":
 		$Camera3D.position = lerp($Camera3D.position, $Cube.position + cam_offset, cam_speed * delta)
-		$Camera3D.rotation = lerp($Camera3D.rotation, Vector3(-0.9,0,0), cam_speed * delta)
+		$Camera3D.rotation = lerp($Camera3D.rotation, Vector3(-1,0,0), cam_speed * delta)
 	else:
 		var CAM = Vector3()
 		# this will center the cam to the width of the level matrix

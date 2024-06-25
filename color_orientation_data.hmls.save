@@ -6,67 +6,30 @@ direction matrix:
      up: (0,0,-1)
 
 starting transform:
+cube color: blue
+input : (0,0,0)
+x: (1, 0, 0)
+y: (0, 1, 0)
+z: (0, 0, 1)
+-------
+cube color: red
+right : (1, 0, 0)
+transform:
+x: (0, -1, 0)
+y: (1, 0, 0)
+z: (0, 0, 1)
+-------
+cube color: blue
+left  : (-1, 0, 0)
+transform:
 x: (1, 0, 0)
 y: (0, 1, 0)
 z: (0, 0, 1)
 
-inputs pressed: down, right, up, left
----------- START SEQUENCE ----------
-direction: down   (0, 0, 1)
-original color: blue
-original transform:
-x: (1, 0, 0)
-y: (0, 1, 0)
-z: (0, 0, 1)
-new color: purple
-new transform:
-x: (1, 0, 0)
-y: (0, 0, 1)
-z: (0, -1, 0)
--------
-direction: right  (1, 0, 0)
-original color: purple
-original transform:
-x: (1, 0, 0)
-y: (0, 0, 1)
-z: (0, -1, 0)
-new color: red
-new transform:
-x: (0, -1, 0)
-y: (0, 0, 1)
-z: (-1, 0, 0)
--------
-direction: up     (0, 0, -1)
-original color: red
-original transform:
-x: (0, -1, 0)
-y: (0, 0, 1)
-z: (-1, 0, 0)
-new color: blue
-new transform:
-x: (0, 0, 1)
-y: (0, 1, 0)
-z: (-1, 0, 0)
--------
-direction: left   (-1, 0, 0)
-original color: blue
-original transform:
-x: (0, 0, 1)
-y: (0, 1, 0)
-z: (-1, 0, 0)
-new color: purple
-new transform:
-x: (0, 0, 1)
-y: (-1, 0, 0)
-z: (0, -1, 0)
 
------------ END SEQUENCE -----------
-
-
-
-total cube color data:
+total color data:
 ------------------
-found using mesh.global_transform.basis
+found using mesh.sglobal_transform.basis
 
 blue
 ( 1, 0, 0),( 0, 1, 0),( 0, 0, 1)

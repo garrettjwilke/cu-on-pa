@@ -1,5 +1,5 @@
 {
-	"TILE_SIZE_2D" : 4,
+	"GAME_MODE" : "classic",
 	"LEVEL_MATRIX" : [
 		["10","10","10","10","10"],
 		["10","10","10","10","10"],
@@ -8,7 +8,6 @@
 		["10","10","10","10","10"],
 	],
 	"comment": [
-		"THIS IS A BLANK LEVEL.",
 		"WARNING: any of the YELLOW text below does not actually affect the game
 		this is just so you can easily recognize what kind of tile you are making
 

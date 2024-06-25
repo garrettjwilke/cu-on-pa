@@ -7,16 +7,9 @@ var cube_size = 1.0
 var speed = 6.0
 var rolling = false
 var CURRENT_ORIENTATION = Vector3(0,0,0)
-var CURRENT_ORIENTATION_COLOR = "blue"
+var CURRENT_ORIENTATION_COLOR
 var FUTURE_ORIENTATION = Vector3(0,0,0)
-var FUTURE_ORIENTATION_COLOR = "blue"
-
-# round vector3
-func round_vect3(data):
-	data.x = round(data.x * pow(10.0,0))
-	data.y = round(data.y * pow(10.0,0))
-	data.z = round(data.z * pow(10.0,0))
-	return data
+var FUTURE_ORIENTATION_COLOR
 
 # the input passed through to match_orientation is a Vector3 with xyz containting a Vector3
 func match_orientation(input):
@@ -53,8 +46,9 @@ func fake_roll(dir):
 	FAKE_PIVOT.add_child(FAKE_MESH)
 	# set the properties from the original mesh and pivot
 	FAKE_MESH.position = mesh.position
-	#FAKE_MESH.global_transform.basis = mesh.global_transform.basis
-	FAKE_MESH.rotation_degrees = round_vect3(mesh.rotation_degrees)
+	FAKE_MESH.global_transform.basis = mesh.global_transform.basis
+	FAKE_MESH.rotation_degrees = hmls.round_vect3(mesh.rotation_degrees)
+	var TEST_VAR_c = FAKE_MESH.global_transform.basis
 	# do the stuffs to make the fake pivot move
 	FAKE_PIVOT.translate(dir * cube_size / 2)
 	FAKE_MESH.global_translate(-dir * cube_size / 2)
@@ -69,6 +63,31 @@ func fake_roll(dir):
 	FAKE_MESH.global_transform.basis = b
 	# this will get the orientation of the FAKE_MESH after it has moved around and stuffs
 	FUTURE_ORIENTATION_COLOR = match_orientation(FAKE_MESH.global_transform.basis)
+	# START TESTS
+	print("-------")
+	var dir_string
+	match dir:
+		Vector3(0,0,1):
+			dir_string = "down   "
+		Vector3(0,0,-1):
+			dir_string = "up     "
+		Vector3(1,0,0):
+			dir_string = "right  "
+		Vector3(-1,0,0):
+			dir_string = "left   "
+	print("direction: ",dir_string, dir)
+	print("original color: ", match_orientation(mesh.global_transform.basis))
+	print("original transform:")
+	print("x: ",hmls.round_vect3(TEST_VAR_c.x))
+	print("y: ",hmls.round_vect3(TEST_VAR_c.y))
+	print("z: ",hmls.round_vect3(TEST_VAR_c.z))
+	print("new color: ",FUTURE_ORIENTATION_COLOR)
+	print("new transform:")
+	print("x: ",hmls.round_vect3(FAKE_MESH.global_transform.basis.x))
+	print("y: ",hmls.round_vect3(FAKE_MESH.global_transform.basis.y))
+	print("z: ",hmls.round_vect3(FAKE_MESH.global_transform.basis.z))
+	# END TESTS
+	
 	# we then delete the FAKE_PIVOT and FAKE_MESH
 	FAKE_PIVOT.queue_free()
 	# we need to get the properties of the tile we are moving into
@@ -85,7 +104,14 @@ func fake_roll(dir):
 	rolling = false
 	# if the color of the tile we are trying to move into is the same as what our cube will be
 	if FUTURE_ORIENTATION_COLOR == CHECK_TILE[1]:
+		# the CHECK_TILE var also returns the attribute of the tile
 		match CHECK_TILE[3]:
+			"default":
+				if hmls.GAME_MODE == "classic":
+					# check to see if tile is gray - without doing this, the level lags because it is rebuilt every step
+					if FUTURE_ORIENTATION_COLOR != "gray":
+						hmls.CURRENT_LEVEL[CELL.y][CELL.x] = 10
+						hmls.update_tiles("reload")
 			"camera_switch":
 				if hmls.DYNAMIC_CAM == "true":
 					hmls.DYNAMIC_CAM = "false"
@@ -105,9 +131,13 @@ func fake_roll(dir):
 				if get_node_or_null(NODE_NAME):
 					get_node(NODE_NAME).queue_free()
 					hmls.KEY_COUNT -= 1
-				hmls.CURRENT_LEVEL[CELL.y][CELL.x] = int(str(str(CELL_DATA).left(1),0))
-				hmls.update_tiles("reload")
-		hmls.debug_message("cube_3d.gd - fake_roll() - CHECK_COLOR", CHECK_TILE,1)
+				match hmls.GAME_MODE:
+					"classic":
+						hmls.CURRENT_LEVEL[CELL.y][CELL.x] = 10
+						hmls.update_tiles("reload")
+					"puzzle":
+						hmls.CURRENT_LEVEL[CELL.y][CELL.x] = int(str(str(CELL_DATA).left(1),0))
+						hmls.update_tiles("reload")
 		return "true"
 	else:
 		hmls.debug_message("cube_3d.gd - fake_roll() - CHECK_COLOR",CHECK_TILE,2)
@@ -193,7 +223,16 @@ func _physics_process(_delta):
 		hmls.update_cube_position(Vector2(position.x,position.z))
 		mesh.rotation_degrees = Vector3(0,0,0)
 	if Input.is_action_just_pressed("level_next"):
-		hmls.update_level()
+		hmls.update_level(1)
+		hmls.update_tiles("reset")
+		hmls.update_tiles("3d")
+		# set the position and then pass position to hmls.update_cube_position
+		# if we don't do this, the cube can end up on a bad tile
+		position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
+		hmls.update_cube_position(Vector2(position.x,position.z))
+		mesh.rotation_degrees = Vector3(0,0,0)
+	if Input.is_action_just_pressed("level_previous"):
+		hmls.update_level(-1)
 		hmls.update_tiles("reset")
 		hmls.update_tiles("3d")
 		# set the position and then pass position to hmls.update_cube_position

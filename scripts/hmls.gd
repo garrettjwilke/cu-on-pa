@@ -40,11 +40,17 @@ var NODE_COUNTER = 0
 func round_to_dec(num):
 	return round(num * pow(10.0, 0)) / pow(10.0, 0)
 
+# round vector3
+func round_vect3(data):
+	data.x = round(data.x * pow(10.0,0))
+	data.y = round(data.y * pow(10.0,0))
+	data.z = round(data.z * pow(10.0,0))
+	return data
+
 # get the position of the cube
 var CUBE_POSITION = Vector2()
 func update_cube_position(position):
 	CUBE_POSITION = position
-	debug_message("hmls.gd - update_cube_position()", CUBE_POSITION, 1)
 
 func floor_check(pos_x, pos_y):
 	var NODE_NAME = str(pos_x,"x",pos_y)
@@ -124,9 +130,9 @@ func update_mesh_spawn_names(mesh_name):
 
 # starting level
 var LEVEL = 0
-func update_level():
-	LEVEL += 1
-	CURRENT_LEVEL = []
+func update_level(amount):
+	LEVEL += amount
+	#CURRENT_LEVEL = []
 	START_POSITION = Vector2(0,0)
 	KEY_COUNT = 0
 	debug_message("hmls.update_level()", str("level = ", LEVEL), 1)
@@ -181,7 +187,7 @@ func get_cell_data(cell):
 			print("hopefully this never prints - hmls.gd - get_cell_data()")
 			# when RNG is set, we need a way to keep track of what the new tile color is
 			# so we get a random tile, and set the properties back in the level matrix
-			var NEW_DATA = get_cell_data(rng(1,6))
+			var NEW_DATA = get_cell_data(rng(1,7))
 			COLOR = NEW_DATA[0]
 			NAME = NEW_DATA[1]
 			NEW_CELL = NEW_DATA[2]
@@ -237,10 +243,10 @@ func tile_spawn(x, y, MODE, cell):
 		var TILE_HEIGHT = 0.1
 		CURRENT_TILE.scale = Vector3(TILE_SCALE, TILE_HEIGHT, TILE_SCALE)
 		CURRENT_TILE.position = Vector3(x, -(TILE_HEIGHT / 2 + 0.03), y)
-		var COLLISION = CollisionShape3D.new()
-		COLLISION.shape = BoxShape3D.new()
-		COLLISION.name = str(x,"x",y,"_collision")
-		CURRENT_TILE.add_child(COLLISION)
+		#var COLLISION = CollisionShape3D.new()
+		#COLLISION.shape = BoxShape3D.new()
+		#COLLISION.name = str(x,"x",y,"_collision")
+		#CURRENT_TILE.add_child(COLLISION)
 		get_node("/root/hmls/VIEW_3D").add_child(CURRENT_TILE)
 		match ATTRIBUTE:
 			"box":
@@ -274,6 +280,7 @@ func load_level():
 	var LEVEL_STRING = str("res://levels/LEVEL_", LEVEL, ".json")
 	if not FileAccess.file_exists(LEVEL_STRING):
 		LEVEL_MATRIX = get_default("LEVEL_MATRIX")
+		GAME_MODE = get_default("GAME_MODE")
 		LEVEL = 0
 	else:
 		var file = FileAccess.open(LEVEL_STRING, FileAccess.READ)
@@ -283,6 +290,12 @@ func load_level():
 			LEVEL_MATRIX = level_data.LEVEL_MATRIX
 		else:
 			LEVEL_MATRIX = get_default("LEVEL_MATRIX")
+		if level_data.has("GAME_MODE"):
+			GAME_MODE = level_data.GAME_MODE
+		else:
+			GAME_MODE = get_default("GAME_MODE")
+		if level_data.has("DYNAMIC_CAM"):
+			DYNAMIC_CAM = level_data.DYNAMIC_CAM
 
 # this is the first function to run to spawn tiles
 func update_tiles(MODE):
@@ -311,7 +324,7 @@ func update_tiles(MODE):
 			#	START_POSITION = Vector2(x,y)
 			if str(cell).left(1) == "9":
 				# if level has RNG values set, change the cell to the new RNG value
-				NEW_CELL = str(str(rng(1, 6),str(cell).right(1)))
+				NEW_CELL = str(str(rng(1, 7),str(cell).right(1)))
 				# set the NEW_CELL value to the LEVEL_MATRIX
 				LEVEL_MATRIX[y][x] = NEW_CELL
 			# set CURRENT_LEVEL so that when tiles are updated, we are no longer regenerating RNG
@@ -332,5 +345,5 @@ func update_tiles(MODE):
 func _ready():
 	DisplayServer.window_set_title(get_default("WINDOW_TITLE"))
 	DisplayServer.window_set_size(get_default("RESOLUTION"))
-	update_level()
+	update_level(1)
 

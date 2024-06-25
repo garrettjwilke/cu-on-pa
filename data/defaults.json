@@ -3,6 +3,7 @@
 	"TILE_SIZE_2D" : 4,
 	"RESOLUTION" : [1280,720],
 	"GAME_DIFFICULTY" : "hard",
+	"comment": "the options for GAME_MODE are: classic, puzzle, quest",
 	"GAME_MODE" : "classic",
 	"RNG_SEED" : "cu-on-pa rng test seed",
 	"COLOR_BLACK" : "#323232",

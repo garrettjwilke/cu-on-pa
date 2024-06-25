@@ -18,6 +18,7 @@ tonemap_mode = 2
 glow_enabled = true
 
 [node name="view_3d" type="Node3D"]
+rotation_order = 0
 script = ExtResource("1_wpaoh")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
@@ -42,7 +43,8 @@ grow_horizontal = 0
 text = "------    Keybinds:    ------
 R : Regenerate RNG 
 N : Load Next Level
-Enter: Cam Switch"
+B: Load Previous Level
+Enter: Switch Camera View"
 
 [node name="Cube" parent="." instance=ExtResource("2_x1n4d")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.08165e-12, 2.08165e-12, 2.08165e-12)
