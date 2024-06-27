@@ -45,17 +45,16 @@ func fake_roll(dir):
 	FAKE_MESH.name = "INVISIBLE_CUBE"
 	FAKE_PIVOT.add_child(FAKE_MESH)
 	# set the properties from the original mesh and pivot
-	FAKE_MESH.position = mesh.position
+	#FAKE_MESH.position = mesh.position
 	FAKE_MESH.global_transform.basis = mesh.global_transform.basis
 	FAKE_MESH.rotation_degrees = hmls.round_vect3(mesh.rotation_degrees)
-	var TEST_VAR_c = FAKE_MESH.global_transform.basis
 	# do the stuffs to make the fake pivot move
 	FAKE_PIVOT.translate(dir * cube_size / 2)
 	FAKE_MESH.global_translate(-dir * cube_size / 2)
 	var axis = dir.cross(Vector3.DOWN)
 	var tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	tween.tween_property(FAKE_PIVOT, "transform",
-			FAKE_PIVOT.transform.rotated_local(axis, PI/2), 0.000000001)
+			FAKE_PIVOT.transform.rotated_local(axis, PI/2), 0)
 	await tween.finished
 	var b = FAKE_MESH.global_transform.basis
 	FAKE_PIVOT.transform = Transform3D.IDENTITY
@@ -63,30 +62,6 @@ func fake_roll(dir):
 	FAKE_MESH.global_transform.basis = b
 	# this will get the orientation of the FAKE_MESH after it has moved around and stuffs
 	FUTURE_ORIENTATION_COLOR = match_orientation(FAKE_MESH.global_transform.basis)
-	# START TESTS
-	print("-------")
-	var dir_string
-	match dir:
-		Vector3(0,0,1):
-			dir_string = "down   "
-		Vector3(0,0,-1):
-			dir_string = "up     "
-		Vector3(1,0,0):
-			dir_string = "right  "
-		Vector3(-1,0,0):
-			dir_string = "left   "
-	print("direction: ",dir_string, dir)
-	print("original color: ", match_orientation(mesh.global_transform.basis))
-	print("original transform:")
-	print("x: ",hmls.round_vect3(TEST_VAR_c.x))
-	print("y: ",hmls.round_vect3(TEST_VAR_c.y))
-	print("z: ",hmls.round_vect3(TEST_VAR_c.z))
-	print("new color: ",FUTURE_ORIENTATION_COLOR)
-	print("new transform:")
-	print("x: ",hmls.round_vect3(FAKE_MESH.global_transform.basis.x))
-	print("y: ",hmls.round_vect3(FAKE_MESH.global_transform.basis.y))
-	print("z: ",hmls.round_vect3(FAKE_MESH.global_transform.basis.z))
-	# END TESTS
 	
 	# we then delete the FAKE_PIVOT and FAKE_MESH
 	FAKE_PIVOT.queue_free()
@@ -110,7 +85,8 @@ func fake_roll(dir):
 				if hmls.GAME_MODE == "classic":
 					# check to see if tile is gray - without doing this, the level lags because it is rebuilt every step
 					if FUTURE_ORIENTATION_COLOR != "gray":
-						hmls.CURRENT_LEVEL[CELL.y][CELL.x] = 10
+						hmls.CURRENT_LEVEL[CELL.y][CELL.x] = "10"
+						#hmls.tile_spawn(CELL.x, CELL.y, "10")
 						hmls.update_tiles("reload")
 			"camera_switch":
 				if hmls.DYNAMIC_CAM == "true":
@@ -121,7 +97,8 @@ func fake_roll(dir):
 				if hmls.KEY_COUNT < 1:
 					hmls.KEY_COUNT = 0
 				hmls.KEY_COUNT += 1
-				hmls.CURRENT_LEVEL[CELL.y][CELL.x] = 10
+				hmls.CURRENT_LEVEL[CELL.y][CELL.x] = "10"
+				#hmls.tile_spawn(CELL.x, CELL.y, "10")
 				hmls.update_tiles("reload")
 				hmls.debug_message("cube_3d.gd - fake_roll() - hmls.KEY_COUNT",hmls.KEY_COUNT,1)
 			"box":
@@ -133,10 +110,12 @@ func fake_roll(dir):
 					hmls.KEY_COUNT -= 1
 				match hmls.GAME_MODE:
 					"classic":
-						hmls.CURRENT_LEVEL[CELL.y][CELL.x] = 10
+						hmls.CURRENT_LEVEL[CELL.y][CELL.x] = "10"
+						#hmls.tile_spawn(CELL.x, CELL.y, "10")
 						hmls.update_tiles("reload")
 					"puzzle":
-						hmls.CURRENT_LEVEL[CELL.y][CELL.x] = int(str(str(CELL_DATA).left(1),0))
+						hmls.CURRENT_LEVEL[CELL.y][CELL.x] = str(str(CELL_DATA).left(1),0)
+						#hmls.tile_spawn(CELL.x, CELL.y, str(str(CELL_DATA).left(1),0))
 						hmls.update_tiles("reload")
 		return "true"
 	else:
@@ -186,7 +165,6 @@ func roll(dir):
 	hmls.update_cube_position(Vector2(int(position.x), int(position.z)))
 
 func _ready():
-	#STARTING_PIVOT = pivot
 	position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
 	hmls.update_cube_position(Vector2(position.x,position.z))
 
