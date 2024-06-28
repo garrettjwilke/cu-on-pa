@@ -1,6 +1,6 @@
 extends Node
 
-var DEBUG = false
+var DEBUG = true
 # setting DEBUG_SEVERITY can help isolate debug messages
 #   setting to 0 will show all debug messages
 var DEBUG_SEVERITY = 0
@@ -34,7 +34,7 @@ var LEVEL_MATRIX = []
 # other parts of the game need to know the dimensions of the level. this is added up as we spawn tiles
 var LEVEL_RESOLUTION = Vector2(0,0)
 # every time a tile is spawned, this NODE_COUNTER goes up
-var NODE_COUNTER = 0
+#var NODE_COUNTER = 0
 
 # round number up/down
 func round_to_dec(num):
@@ -61,6 +61,7 @@ func floor_check(pos_x, pos_y):
 			return "stop"
 	# if cube passes check, get the color of the next tile it is rolling into
 	NEXT_COLOR = LEVEL_MATRIX[pos_y][pos_x]
+	#print(NEXT_COLOR)
 	# if the next color is a 00 (ZZ) then stop
 	#if str(NEXT_COLOR) == "ZZ":
 	#	return "stop"
@@ -119,14 +120,6 @@ func rng(MIN, MAX):
 	number.set_seed(new_seed)
 	number = number.randi_range(MIN, MAX)
 	return number
-
-# keep track of all the nodes that are spawned
-var mesh_spawn_names = []
-func update_mesh_spawn_names(mesh_name):
-	if mesh_name == "!!delete":
-		mesh_spawn_names = []
-	else:
-		mesh_spawn_names.append(mesh_name)
 
 # starting level
 var LEVEL = 0
@@ -214,8 +207,34 @@ func get_cell_data(cell):
 			ATTRIBUTE = "null"
 	return [COLOR, NAME, NEW_CELL, ATTRIBUTE]
 
+func spawn_box(x, y, COLOR):
+	var NEW_BOX = BOX_MESH.instantiate()
+	NEW_BOX.name = str(x,"x",y,"_box")
+	NEW_BOX.scale = NEW_BOX.scale * 0.6
+	NEW_BOX.position = Vector3(x,0.3,y)
+	var material = load("res://textures/block_3d_texture.tres")
+	var new_material = material.duplicate()
+	new_material.albedo_color = COLOR
+	scale_thingy(NEW_BOX,0.3)
+	get_node("/root/hmls/VIEW_3D/").add_child(NEW_BOX)
+	
+	get_node(str("/root/hmls/VIEW_3D/",NEW_BOX.name,"/MeshInstance3D")).mesh.surface_set_material(0, new_material)
+
+func spawn_key(COLOR,node_name):
+	var material = load("res://textures/key_texture.tres")
+	var new_material = material.duplicate()
+	new_material.albedo_color = COLOR
+	get_node(str("/root/hmls/VIEW_3D/",node_name)).mesh.surface_set_material(0, new_material)
+
+func scale_thingy(node, speed):
+	var old_scale = node.scale
+	node.scale = Vector3(0,0,0)
+	node.show()
+	var tween = create_tween()
+	tween.tween_property(node,"scale",old_scale, speed)
+
 # this will spawn after the update_tiles() is ran
-func tile_spawn(x, y, MODE, cell):
+func tile_spawn(x, y, cell):
 	# the get_cell_data() returns an array with html color codes and attributes
 	var CELL_DATA = get_cell_data(cell)
 	var COLOR = CELL_DATA[0]
@@ -224,51 +243,38 @@ func tile_spawn(x, y, MODE, cell):
 		START_POSITION = Vector2(x,y)
 	if COLOR == "null":
 		return
-	# add the tile if valid
-	NODE_COUNTER += 1
 	var CURRENT_TILE
-	if MODE == "3d":
-		# create a VIEW_3D node to attach all 3d nodes to
-		if not get_node_or_null("/root/hmls/VIEW_3D"):
-			var NODE_3D = Node3D.new()
-			NODE_3D.name = str("VIEW_3D")
-			get_node("/root/hmls").add_child(NODE_3D)
-			hmls.update_mesh_spawn_names(NODE_3D.name)
+	# create a VIEW_3D node to attach all 3d nodes to
+	if not get_node_or_null("/root/hmls/VIEW_3D"):
+		var NODE_3D = Node3D.new()
+		NODE_3D.name = str("VIEW_3D")
+		get_node("/root/hmls").add_child(NODE_3D)
+	if get_node_or_null(str("/root/hmls/VIEW_3D/",x,"x",y)):
+		CURRENT_TILE = get_node(str("/root/hmls/VIEW_3D/",x,"x",y))
+		var tween2 = create_tween()
+		tween2.tween_property(CURRENT_TILE,"scale",Vector3(0,0,0), 0.3)
+		await tween2.finished
+	else:
 		CURRENT_TILE = MeshInstance3D.new()
+		CURRENT_TILE.name = str(x,"x",y)
 		CURRENT_TILE.mesh = BoxMesh.new()
-		var material = StandardMaterial3D.new()
-		material.albedo_color = COLOR
-		CURRENT_TILE.mesh.surface_set_material(0, material)
-		var TILE_SCALE = 0.85
-		var TILE_HEIGHT = 0.1
-		CURRENT_TILE.scale = Vector3(TILE_SCALE, TILE_HEIGHT, TILE_SCALE)
-		CURRENT_TILE.position = Vector3(x, -(TILE_HEIGHT / 2 + 0.03), y)
-		#var COLLISION = CollisionShape3D.new()
-		#COLLISION.shape = BoxShape3D.new()
-		#COLLISION.name = str(x,"x",y,"_collision")
-		#CURRENT_TILE.add_child(COLLISION)
 		get_node("/root/hmls/VIEW_3D").add_child(CURRENT_TILE)
-		match ATTRIBUTE:
-			"box":
-				var NEW_BOX = BOX_MESH.instantiate()
-				NEW_BOX.name = str(x,"x",y,"_box")
-				NEW_BOX.position = Vector3(x,0.5,y)
-				material = load("res://textures/block_3d_texture.tres")
-				var new_material = material.duplicate()
-				new_material.albedo_color = COLOR
-				get_node("/root/hmls/VIEW_3D/").add_child(NEW_BOX)
-				get_node(str("/root/hmls/VIEW_3D/",NEW_BOX.name,"/MeshInstance3D")).mesh.surface_set_material(0, new_material)
-				hmls.update_mesh_spawn_names(NEW_BOX.name)
-				debug_message("hmls.gd - tile_spawn() - ATTRIBUTE",ATTRIBUTE,1)
-			"key":
-				material = load("res://textures/key_texture.tres")
-				var new_material = material.duplicate()
-				new_material.albedo_color = COLOR
-				get_node(str("/root/hmls/VIEW_3D/",CURRENT_TILE.name)).mesh.surface_set_material(0, new_material)
-		
+	var material = StandardMaterial3D.new()
+	material.albedo_color = COLOR
+	CURRENT_TILE.mesh.surface_set_material(0, material)
+	var TILE_SCALE = 0.85
+	var TILE_HEIGHT = 0.1
 	# WARNING: changing the CURRENT_TILE.name var will break floor_check() function
 	CURRENT_TILE.name = str(x,"x",y)
-	update_mesh_spawn_names(CURRENT_TILE.name)
+	CURRENT_TILE.scale = Vector3(TILE_SCALE, TILE_HEIGHT, TILE_SCALE)
+	CURRENT_TILE.position = Vector3(x, -(TILE_HEIGHT / 2 + 0.03), y)
+	CURRENT_TILE.hide()
+	scale_thingy(CURRENT_TILE,0.4)
+	match ATTRIBUTE:
+		"box":
+			spawn_box(x,y,COLOR)
+		"key":
+			spawn_key(COLOR,CURRENT_TILE.name)
 
 func load_level():
 	# if the CURRENT_LEVEL has data, set the LEVEL_MATRIX
@@ -308,12 +314,11 @@ func update_tiles(MODE):
 	# if reset, then delete all nodes and set CURRENT_LEVEL to nothing
 	if MODE == "reset":
 		remove_child(get_node("/root/hmls/VIEW_3D"))
-		update_mesh_spawn_names("!!delete")
 		CURRENT_LEVEL = []
 		LEVEL_RESOLUTION = Vector2(0,0)
 		return
 	load_level()
-	# spawn individual tiles
+	# spawn all tiles in LEVEL_MATRIX
 	var x = 0
 	var y = 0
 	for row in LEVEL_MATRIX:
@@ -329,18 +334,19 @@ func update_tiles(MODE):
 				LEVEL_MATRIX[y][x] = NEW_CELL
 			# set CURRENT_LEVEL so that when tiles are updated, we are no longer regenerating RNG
 			CURRENT_LEVEL = LEVEL_MATRIX
-			tile_spawn(x, y, MODE, NEW_CELL)
+			tile_spawn(x, y, NEW_CELL)
 			# increment x so the next cell will be read correctly
 			x += 1
 			if x > LEVEL_RESOLUTION.x:
-				LEVEL_RESOLUTION.x += 1
+				#LEVEL_RESOLUTION.x += 1
+				LEVEL_RESOLUTION.x = x
 		# set x back to 0 and increment y to read the next row
 		x = 0
 		y += 1
 		if y > LEVEL_RESOLUTION.y:
-			LEVEL_RESOLUTION.y += 1
+			LEVEL_RESOLUTION.y = y
 	# reset the node counter after all tiles have spawned
-	NODE_COUNTER = 0
+	#NODE_COUNTER = 0
 
 func _ready():
 	DisplayServer.window_set_title(get_default("WINDOW_TITLE"))
