@@ -116,13 +116,12 @@ func fake_roll(dir):
 					hmls.KEY_COUNT = 0
 				hmls.KEY_COUNT += 1
 				if hmls.GAME_MODE == "puzzle":
-					if FUTURE_ORIENTATION_COLOR != "gray":
-						hmls.CURRENT_LEVEL[CELL.y][CELL.x] = str(str(CELL_DATA).left(1),0)
-						hmls.tile_spawn(CELL.x,CELL.y,str(str(CELL_DATA).left(1),0))
+					hmls.CURRENT_LEVEL[CELL.y][CELL.x] = str(str(CELL_DATA).left(1),0)
+					hmls.tile_spawn(CELL.x,CELL.y,str(str(CELL_DATA).left(1),0))
 				if hmls.GAME_MODE == "classic":
-					if FUTURE_ORIENTATION_COLOR != "gray":
-						hmls.CURRENT_LEVEL[CELL.y][CELL.x] = "10"
-						hmls.tile_spawn(CELL.x,CELL.y,"10")
+					print("key")
+					hmls.CURRENT_LEVEL[CELL.y][CELL.x] = "10"
+					hmls.tile_spawn(CELL.x,CELL.y,"10")
 				hmls.debug_message("cube_3d.gd - fake_roll() - hmls.KEY_COUNT",hmls.KEY_COUNT,1)
 			"box":
 				if hmls.KEY_COUNT < 1:
