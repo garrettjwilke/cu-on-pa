@@ -1,11 +1,12 @@
 # Cu-On-Pa
 
 TODO:
-* after tile color has been stepped on, clear tile and rebuild level
 
-* create attributes for the cube to interact with
+* fix camera
 
-* create rules for the cube to interact with attributes
+* add bombs
+
+* add teleports
 
 * make a level editor
 
