@@ -1,6 +1,6 @@
 extends Node
 
-var DEBUG = true
+var DEBUG = false
 # setting DEBUG_SEVERITY can help isolate debug messages
 #   setting to 0 will show all debug messages
 var DEBUG_SEVERITY = 0
@@ -14,6 +14,8 @@ var KEY_COUNT = 0
 
 # this is set after the level matrix has been loaded
 var CURRENT_LEVEL = []
+
+var ENABLE_JANK = false
 
 # when calling debug message, you need to set a severity
 # if the DEBUG_SEVERITY is set to 0, it will display all debug messages
@@ -215,10 +217,10 @@ func spawn_box(x, y, COLOR):
 	var material = load("res://textures/block_3d_texture.tres")
 	var new_material = material.duplicate()
 	new_material.albedo_color = COLOR
-	scale_thingy(NEW_BOX,0.3)
 	get_node("/root/hmls/VIEW_3D/").add_child(NEW_BOX)
-	
 	get_node(str("/root/hmls/VIEW_3D/",NEW_BOX.name,"/MeshInstance3D")).mesh.surface_set_material(0, new_material)
+	if ENABLE_JANK:
+		scale_thingy(NEW_BOX,0.3)
 
 func spawn_key(COLOR,node_name):
 	var material = load("res://textures/key_texture.tres")
@@ -230,8 +232,9 @@ func scale_thingy(node, speed):
 	var old_scale = node.scale
 	node.scale = Vector3(0,0,0)
 	node.show()
-	var tween = create_tween()
+	var tween = create_tween().set_ease(Tween.EASE_OUT_IN)
 	tween.tween_property(node,"scale",old_scale, speed)
+	#await tween.finished
 
 # this will spawn after the update_tiles() is ran
 func tile_spawn(x, y, cell):
@@ -268,7 +271,7 @@ func tile_spawn(x, y, cell):
 	CURRENT_TILE.name = str(x,"x",y)
 	CURRENT_TILE.scale = Vector3(TILE_SCALE, TILE_HEIGHT, TILE_SCALE)
 	CURRENT_TILE.position = Vector3(x, -(TILE_HEIGHT / 2 + 0.03), y)
-	CURRENT_TILE.hide()
+	#CURRENT_TILE.hide()
 	scale_thingy(CURRENT_TILE,0.4)
 	match ATTRIBUTE:
 		"box":

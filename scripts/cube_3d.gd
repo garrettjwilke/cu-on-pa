@@ -10,7 +10,6 @@ var CURRENT_ORIENTATION = Vector3(0,0,0)
 var CURRENT_ORIENTATION_COLOR
 var FUTURE_ORIENTATION = Vector3(0,0,0)
 var FUTURE_ORIENTATION_COLOR
-var CAN_ROLL = "false"
 
 # the input passed through to match_orientation is a Vector3 with xyz containting a Vector3
 func match_orientation(input):
@@ -81,6 +80,19 @@ func fake_roll(dir):
 	if FUTURE_ORIENTATION_COLOR == CHECK_TILE[1]:
 		# the CHECK_TILE var also returns the attribute of the tile
 		match CHECK_TILE[3]:
+			"start_position":
+				if hmls.GAME_MODE == "classic":
+					# check to see if tile is gray - without doing this, the level lags because it is rebuilt every step
+					if FUTURE_ORIENTATION_COLOR != "gray":
+						hmls.CURRENT_LEVEL[CELL.y][CELL.x] = "10"
+						#hmls.LEVEL_MATRIX[CELL.y][CELL.x] = "10"
+						hmls.tile_spawn(CELL.x,CELL.y,"10")
+						#hmls.tile_spawn(CELL.x, CELL.y, "10")
+						#hmls.update_tiles("reload")
+				if hmls.GAME_MODE == "puzzle":
+					if FUTURE_ORIENTATION_COLOR != "gray":
+						hmls.CURRENT_LEVEL[CELL.y][CELL.x] = str(str(CELL_DATA).left(1),0)
+						hmls.tile_spawn(CELL.x,CELL.y,str(str(CELL_DATA).left(1),0))
 			"default":
 				if hmls.GAME_MODE == "classic":
 					# check to see if tile is gray - without doing this, the level lags because it is rebuilt every step
@@ -90,6 +102,10 @@ func fake_roll(dir):
 						hmls.tile_spawn(CELL.x,CELL.y,"10")
 						#hmls.tile_spawn(CELL.x, CELL.y, "10")
 						#hmls.update_tiles("reload")
+				if hmls.GAME_MODE == "puzzle":
+					if FUTURE_ORIENTATION_COLOR != "gray":
+						hmls.CURRENT_LEVEL[CELL.y][CELL.x] = str(str(CELL_DATA).left(1),0)
+						hmls.tile_spawn(CELL.x,CELL.y,str(str(CELL_DATA).left(1),0))
 			"camera_switch":
 				if hmls.DYNAMIC_CAM == "true":
 					hmls.DYNAMIC_CAM = "false"
@@ -99,32 +115,35 @@ func fake_roll(dir):
 				if hmls.KEY_COUNT < 1:
 					hmls.KEY_COUNT = 0
 				hmls.KEY_COUNT += 1
-				hmls.CURRENT_LEVEL[CELL.y][CELL.x] = "10"
-				#hmls.LEVEL_MATRIX[CELL.y][CELL.x] = "10"
-				hmls.tile_spawn(CELL.x,CELL.y,"10")
-				#hmls.update_tiles("reload")
+				if hmls.GAME_MODE == "puzzle":
+					if FUTURE_ORIENTATION_COLOR != "gray":
+						hmls.CURRENT_LEVEL[CELL.y][CELL.x] = str(str(CELL_DATA).left(1),0)
+						hmls.tile_spawn(CELL.x,CELL.y,str(str(CELL_DATA).left(1),0))
+				if hmls.GAME_MODE == "classic":
+					if FUTURE_ORIENTATION_COLOR != "gray":
+						hmls.CURRENT_LEVEL[CELL.y][CELL.x] = "10"
+						hmls.tile_spawn(CELL.x,CELL.y,"10")
 				hmls.debug_message("cube_3d.gd - fake_roll() - hmls.KEY_COUNT",hmls.KEY_COUNT,1)
 			"box":
 				if hmls.KEY_COUNT < 1:
 					return
 				var NODE_NAME = str("/root/hmls/VIEW_3D/",CELL.x,"x",CELL.y,"_box")
-				var tween2 = create_tween()
-				tween2.tween_property(get_node(NODE_NAME),"scale",Vector3(0,0,0), 0.1)
-				#await tween2.finished
+				#var tween2 = create_tween()
+				#tween2.tween_property(get_node(NODE_NAME),"scale",Vector3(0,0,0), 0.1)
 				hmls.KEY_COUNT -= 1
 				if is_instance_valid(get_node(NODE_NAME)):
 					get_node(NODE_NAME).queue_free()
 				match hmls.GAME_MODE:
 					"classic":
 						hmls.CURRENT_LEVEL[CELL.y][CELL.x] = "10"
-						#hmls.LEVEL_MATRIX[CELL.y][CELL.x] = "10"
+						hmls.LEVEL_MATRIX[CELL.y][CELL.x] = "10"
 						hmls.tile_spawn(CELL.x,CELL.y,"10")
 						#hmls.update_tiles("reload")
 					"puzzle":
 						hmls.CURRENT_LEVEL[CELL.y][CELL.x] = str(str(CELL_DATA).left(1),0)
-						#hmls.LEVEL_MATRIX[CELL.y][CELL.x] = str(str(CELL_DATA).left(1),0)
-						hmls.tile_spawn(CELL.x,CELL.y,"10")
-						#hmls.tile_spawn(CELL.x, CELL.y, str(str(CELL_DATA).left(1),0))
+						hmls.LEVEL_MATRIX[CELL.y][CELL.x] = str(str(CELL_DATA).left(1),0)
+						#hmls.tile_spawn(CELL.x,CELL.y,str(str(CELL_DATA).left(1),0))
+						hmls.tile_spawn(CELL.x, CELL.y, str(str(CELL_DATA).left(1),0))
 						#hmls.update_tiles("reload")
 		return "true"
 		#CAN_ROLL = "true"
@@ -173,6 +192,7 @@ func roll(dir):
 	hmls.debug_message("cube_3d.gd - roll() - CURRENT_ORIENTATION_COLOR", CURRENT_ORIENTATION_COLOR,1)
 	rolling = false
 	hmls.update_cube_position(Vector2(int(position.x), int(position.z)))
+				
 
 func _ready():
 	hmls.KEY_COUNT = 0
