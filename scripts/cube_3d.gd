@@ -10,6 +10,7 @@ var CURRENT_ORIENTATION = Vector3(0,0,0)
 var CURRENT_ORIENTATION_COLOR
 var FUTURE_ORIENTATION = Vector3(0,0,0)
 var FUTURE_ORIENTATION_COLOR
+var CAN_ROLL = "false"
 
 # the input passed through to match_orientation is a Vector3 with xyz containting a Vector3
 func match_orientation(input):
@@ -34,6 +35,7 @@ func match_orientation(input):
 # so this junk below will create a fake cube and roll it to find if we can even land there
 func fake_roll(dir):
 	if rolling:
+		#CAN_ROLL = "false"
 		return "false"
 	rolling = true
 	# create a FAKE_PIVOT mesh
@@ -53,8 +55,7 @@ func fake_roll(dir):
 	FAKE_MESH.global_translate(-dir * cube_size / 2)
 	var axis = dir.cross(Vector3.DOWN)
 	var tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	tween.tween_property(FAKE_PIVOT, "transform",
-			FAKE_PIVOT.transform.rotated_local(axis, PI/2), 0)
+	tween.tween_property(FAKE_PIVOT, "transform",FAKE_PIVOT.transform.rotated_local(axis, PI/2), 0)
 	await tween.finished
 	var b = FAKE_MESH.global_transform.basis
 	FAKE_PIVOT.transform = Transform3D.IDENTITY
@@ -62,14 +63,13 @@ func fake_roll(dir):
 	FAKE_MESH.global_transform.basis = b
 	# this will get the orientation of the FAKE_MESH after it has moved around and stuffs
 	FUTURE_ORIENTATION_COLOR = match_orientation(FAKE_MESH.global_transform.basis)
-	
 	# we then delete the FAKE_PIVOT and FAKE_MESH
 	FAKE_PIVOT.queue_free()
 	# we need to get the properties of the tile we are moving into
 	# this will create an x y position of the tile we are trying to move to
 	var CELL = Vector2(hmls.CUBE_POSITION.x + dir.x, hmls.CUBE_POSITION.y + dir.z)
 	# this will give us the value in the x and y coordinates of our LEVEL_MATRIX
-	var CELL_DATA = hmls.LEVEL_MATRIX[CELL.y][CELL.x]
+	var CELL_DATA = hmls.CURRENT_LEVEL[CELL.y][CELL.x]
 	# we then take that CELL_DATA and get color and attributes of the tile we are trying to move to
 	var CHECK_TILE = hmls.get_cell_data(CELL_DATA)
 	# if the tile color is gray, we cheat and say that the tile color is the color of our cube
@@ -86,8 +86,10 @@ func fake_roll(dir):
 					# check to see if tile is gray - without doing this, the level lags because it is rebuilt every step
 					if FUTURE_ORIENTATION_COLOR != "gray":
 						hmls.CURRENT_LEVEL[CELL.y][CELL.x] = "10"
+						#hmls.LEVEL_MATRIX[CELL.y][CELL.x] = "10"
+						hmls.tile_spawn(CELL.x,CELL.y,"10")
 						#hmls.tile_spawn(CELL.x, CELL.y, "10")
-						hmls.update_tiles("reload")
+						#hmls.update_tiles("reload")
 			"camera_switch":
 				if hmls.DYNAMIC_CAM == "true":
 					hmls.DYNAMIC_CAM = "false"
@@ -98,28 +100,37 @@ func fake_roll(dir):
 					hmls.KEY_COUNT = 0
 				hmls.KEY_COUNT += 1
 				hmls.CURRENT_LEVEL[CELL.y][CELL.x] = "10"
-				#hmls.tile_spawn(CELL.x, CELL.y, "10")
-				hmls.update_tiles("reload")
+				#hmls.LEVEL_MATRIX[CELL.y][CELL.x] = "10"
+				hmls.tile_spawn(CELL.x,CELL.y,"10")
+				#hmls.update_tiles("reload")
 				hmls.debug_message("cube_3d.gd - fake_roll() - hmls.KEY_COUNT",hmls.KEY_COUNT,1)
 			"box":
 				if hmls.KEY_COUNT < 1:
 					return
 				var NODE_NAME = str("/root/hmls/VIEW_3D/",CELL.x,"x",CELL.y,"_box")
-				if get_node_or_null(NODE_NAME):
+				var tween2 = create_tween()
+				tween2.tween_property(get_node(NODE_NAME),"scale",Vector3(0,0,0), 0.1)
+				#await tween2.finished
+				hmls.KEY_COUNT -= 1
+				if is_instance_valid(get_node(NODE_NAME)):
 					get_node(NODE_NAME).queue_free()
-					hmls.KEY_COUNT -= 1
 				match hmls.GAME_MODE:
 					"classic":
 						hmls.CURRENT_LEVEL[CELL.y][CELL.x] = "10"
-						#hmls.tile_spawn(CELL.x, CELL.y, "10")
-						hmls.update_tiles("reload")
+						#hmls.LEVEL_MATRIX[CELL.y][CELL.x] = "10"
+						hmls.tile_spawn(CELL.x,CELL.y,"10")
+						#hmls.update_tiles("reload")
 					"puzzle":
 						hmls.CURRENT_LEVEL[CELL.y][CELL.x] = str(str(CELL_DATA).left(1),0)
+						#hmls.LEVEL_MATRIX[CELL.y][CELL.x] = str(str(CELL_DATA).left(1),0)
+						hmls.tile_spawn(CELL.x,CELL.y,"10")
 						#hmls.tile_spawn(CELL.x, CELL.y, str(str(CELL_DATA).left(1),0))
-						hmls.update_tiles("reload")
+						#hmls.update_tiles("reload")
 		return "true"
+		#CAN_ROLL = "true"
 	else:
 		hmls.debug_message("cube_3d.gd - fake_roll() - CHECK_COLOR",CHECK_TILE,2)
+		#CAN_ROLL = "false"
 		return "false"
 
 func roll(dir):
@@ -150,8 +161,7 @@ func roll(dir):
 	# Step 2: Animate the rotation.
 	var axis = dir.cross(Vector3.DOWN)
 	var tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	tween.tween_property(pivot, "transform",
-			pivot.transform.rotated_local(axis, PI/2), 1 / speed)
+	tween.tween_property(pivot, "transform",pivot.transform.rotated_local(axis, PI/2), 1 / speed)
 	await tween.finished
 	# Step 3: Finalize the movement and reset the offset.
 	position += dir * cube_size
@@ -165,6 +175,7 @@ func roll(dir):
 	hmls.update_cube_position(Vector2(int(position.x), int(position.z)))
 
 func _ready():
+	hmls.KEY_COUNT = 0
 	position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
 	hmls.update_cube_position(Vector2(position.x,position.z))
 
@@ -183,11 +194,12 @@ func _physics_process(_delta):
 		DIR = Vector3.RIGHT
 	if Input.is_action_pressed("left"):
 		DIR = Vector3.LEFT
-	if not DIR == Vector3.ZERO:
+	if DIR != Vector3.ZERO:
 		match str(hmls.floor_check(hmls.CUBE_POSITION.x + DIR.x, hmls.CUBE_POSITION.y + DIR.z)):
 			"stop":
 				return
 		var CAN_ROLL = await fake_roll(DIR)
+		#await fake_roll(DIR)
 		if CAN_ROLL == "false":
 			return
 		roll(DIR)
