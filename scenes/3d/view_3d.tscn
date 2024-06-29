@@ -1,7 +1,10 @@
-[gd_scene load_steps=6 format=3 uid="uid://d0qkbl33uofmb"]
+[gd_scene load_steps=15 format=3 uid="uid://d0qkbl33uofmb"]
 
 [ext_resource type="Script" path="res://scripts/view_3d.gd" id="1_wpaoh"]
 [ext_resource type="PackedScene" uid="uid://c5a2v6m2bufp0" path="res://scenes/3d/cube_3d.tscn" id="2_x1n4d"]
+[ext_resource type="Shader" path="res://scripts/outline.gdshader" id="3_chhp2"]
+[ext_resource type="Shader" path="res://scripts/grid.gdshader" id="4_eakim"]
+[ext_resource type="Shader" path="res://scripts/mobius.gdshader" id="5_hvqdt"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_m7yul"]
 sky_top_color = Color(0.290196, 0.447059, 0.701961, 1)
@@ -17,12 +20,71 @@ sky = SubResource("Sky_a60fu")
 tonemap_mode = 2
 glow_enabled = true
 
+[sub_resource type="QuadMesh" id="QuadMesh_wme0o"]
+flip_faces = true
+size = Vector2(2, 2)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_dd6dy"]
+render_priority = 0
+shader = ExtResource("5_hvqdt")
+shader_parameter/zNear = 0.05
+shader_parameter/zFar = 100.0
+shader_parameter/outlineThickness = 1.5
+shader_parameter/outlineColor = Color(0, 0, 0, 1)
+shader_parameter/wiggleFrequency = 0.08
+shader_parameter/wiggleAmplitude = 2.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_inbqt"]
+render_priority = 0
+shader = ExtResource("3_chhp2")
+shader_parameter/outlineColor = Color(0, 0, 0, 1)
+shader_parameter/depth_threshold = 0.025
+shader_parameter/normal_threshold = 0.5
+shader_parameter/normal_smoothing = 0.25
+shader_parameter/max_thickness = 1.3
+shader_parameter/min_thickness = 0.5
+shader_parameter/max_distance = 75.0
+shader_parameter/min_distance = 2.0
+shader_parameter/grazing_fresnel_power = 5.0
+shader_parameter/grazing_angle_mask_power = 1.0
+shader_parameter/grazing_angle_modulation_factor = 50.0
+
+[sub_resource type="QuadMesh" id="QuadMesh_khw4b"]
+material = SubResource("ShaderMaterial_inbqt")
+flip_faces = true
+size = Vector2(2, 2)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_7451y"]
+render_priority = 0
+shader = ExtResource("4_eakim")
+shader_parameter/grid_size = 512.0
+shader_parameter/cell_size = 1.0
+shader_parameter/gutter_size = 0.04
+shader_parameter/cell_color = Color(0.078, 0.024, 0, 1)
+shader_parameter/gutter_color = Color(0.922, 0.376, 0, 1)
+shader_parameter/cell_roundedness = 0.0
+shader_parameter/cell_manipulator_radius = 0.0
+shader_parameter/cell_manipulator_uv_pos = Vector2(0.5, 0.5)
+shader_parameter/manipulated_cell_size = 0.5
+shader_parameter/manipulator_gutter_color = Color(1, 1, 1, 1)
+shader_parameter/cell_manipulation_anim_speed = 1.0
+shader_parameter/gutter_noise_color = Color(1, 1, 1, 1)
+shader_parameter/gutter_noise_speed = 0.1
+shader_parameter/fresnel_color = Color(0.675, 0.192, 0, 1)
+shader_parameter/fresnel_intensity = 0.2
+shader_parameter/fresnel_amount = 15.0
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_bv4is"]
+material = SubResource("ShaderMaterial_7451y")
+size = Vector2(512, 512)
+center_offset = Vector3(0.5, -0.1, 0.5)
+
 [node name="view_3d" type="Node3D"]
 rotation_order = 0
 script = ExtResource("1_wpaoh")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(-0.625242, 0.600463, 0.498514, -2.22794e-16, -0.638768, 0.769399, 0.78043, 0.481061, 0.399385, 0, 0, 0)
+transform = Transform3D(0.494973, -0.775144, 0.392624, 0.375816, 0.598389, 0.707596, -0.783431, -0.202686, 0.587498, 0, 4.15229, 0)
 shadow_enabled = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
@@ -31,6 +93,17 @@ environment = SubResource("Environment_gyr2i")
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 3.5, 7)
 fov = 44.5
+
+[node name="shader_mobius" type="MeshInstance3D" parent="Camera3D"]
+transform = Transform3D(1, 0, 0, 0, 0.533939, 0.845523, 0, -0.845523, 0.533939, 0, -2.79695, -7.99637)
+visible = false
+mesh = SubResource("QuadMesh_wme0o")
+skeleton = NodePath("../..")
+surface_material_override/0 = SubResource("ShaderMaterial_dd6dy")
+
+[node name="shader_outline" type="MeshInstance3D" parent="Camera3D"]
+transform = Transform3D(1, 0, 0, 0, 1, -1.30556e-08, 0, -4.03013e-08, 1, 0, 0.107011, -0.399371)
+mesh = SubResource("QuadMesh_khw4b")
 
 [node name="Label" type="Label" parent="Camera3D"]
 custom_minimum_size = Vector2(75, 75)
@@ -48,3 +121,7 @@ Enter: Switch Camera View"
 
 [node name="Cube" parent="." instance=ExtResource("2_x1n4d")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.08165e-12, 2.08165e-12, 2.08165e-12)
+
+[node name="grid" type="MeshInstance3D" parent="."]
+visible = false
+mesh = SubResource("PlaneMesh_bv4is")

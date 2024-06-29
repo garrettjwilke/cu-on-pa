@@ -12,6 +12,23 @@ var BOX_MESH = preload("res://scenes/3d/block_3d.tscn")
 
 var KEY_COUNT = 0
 
+var KEY_BLANK = 0
+var KEY_RED = 0
+var KEY_GREEN = 0
+var KEY_BLUE = 0
+var KEY_YELLOW = 0
+var KEY_PURPLE = 0
+var KEY_ORANGE = 0
+func reset_keys():
+	KEY_COUNT = 0
+	KEY_BLANK = 0
+	KEY_RED = 0
+	KEY_GREEN = 0
+	KEY_BLUE = 0
+	KEY_YELLOW = 0
+	KEY_PURPLE = 0
+	KEY_ORANGE = 0
+
 # this is set after the level matrix has been loaded
 var CURRENT_LEVEL = []
 
@@ -212,7 +229,7 @@ func get_cell_data(cell):
 func spawn_box(x, y, COLOR):
 	var NEW_BOX = BOX_MESH.instantiate()
 	NEW_BOX.name = str(x,"x",y,"_box")
-	NEW_BOX.scale = NEW_BOX.scale * 0.6
+	NEW_BOX.scale = NEW_BOX.scale * 0.5
 	NEW_BOX.position = Vector3(x,0.3,y)
 	var material = load("res://textures/block_3d_texture.tres")
 	var new_material = material.duplicate()
@@ -271,7 +288,6 @@ func tile_spawn(x, y, cell):
 	CURRENT_TILE.name = str(x,"x",y)
 	CURRENT_TILE.scale = Vector3(TILE_SCALE, TILE_HEIGHT, TILE_SCALE)
 	CURRENT_TILE.position = Vector3(x, -(TILE_HEIGHT / 2 + 0.03), y)
-	#CURRENT_TILE.hide()
 	scale_thingy(CURRENT_TILE,0.4)
 	match ATTRIBUTE:
 		"box":
@@ -308,12 +324,6 @@ func load_level():
 
 # this is the first function to run to spawn tiles
 func update_tiles(MODE):
-	if MODE == "reload":
-		var TEMP_MATRIX = CURRENT_LEVEL
-		update_tiles("reset")
-		CURRENT_LEVEL = TEMP_MATRIX
-		update_tiles("3d")
-		return
 	# if reset, then delete all nodes and set CURRENT_LEVEL to nothing
 	if MODE == "reset":
 		remove_child(get_node("/root/hmls/VIEW_3D"))
@@ -328,8 +338,6 @@ func update_tiles(MODE):
 		for cell in row:
 			# check if level has RNG values set
 			var NEW_CELL = cell
-			#if str(NEW_CELL).right(1) == "9":
-			#	START_POSITION = Vector2(x,y)
 			if str(cell).left(1) == "9":
 				# if level has RNG values set, change the cell to the new RNG value
 				NEW_CELL = str(str(rng(1, 7),str(cell).right(1)))
@@ -341,15 +349,74 @@ func update_tiles(MODE):
 			# increment x so the next cell will be read correctly
 			x += 1
 			if x > LEVEL_RESOLUTION.x:
-				#LEVEL_RESOLUTION.x += 1
-				LEVEL_RESOLUTION.x = x
+				LEVEL_RESOLUTION.x += 1
 		# set x back to 0 and increment y to read the next row
 		x = 0
 		y += 1
 		if y > LEVEL_RESOLUTION.y:
-			LEVEL_RESOLUTION.y = y
-	# reset the node counter after all tiles have spawned
-	#NODE_COUNTER = 0
+			LEVEL_RESOLUTION.y += 1
+
+func attribute_stuffs(CELL):
+	var CELL_DATA = CURRENT_LEVEL[CELL.y][CELL.x]
+	var CHECK_TILE = hmls.get_cell_data(hmls.CURRENT_LEVEL[CELL.y][CELL.x])
+	var COLOR = CHECK_TILE[1]
+	var ATTRIBUTE = CHECK_TILE[3]
+	match ATTRIBUTE:
+		"start_position":
+			if GAME_MODE == "classic":
+				# check to see if tile is gray - without doing this, the level lags because it is rebuilt every step
+				if COLOR != "gray":
+					CURRENT_LEVEL[CELL.y][CELL.x] = "10"
+					tile_spawn(CELL.x,CELL.y,"10")
+			if GAME_MODE == "puzzle":
+				if COLOR != "gray":
+					CURRENT_LEVEL[CELL.y][CELL.x] = str(str(CELL_DATA).left(1),0)
+					tile_spawn(CELL.x,CELL.y,str(str(CELL_DATA).left(1),0))
+		"default":
+			if GAME_MODE == "classic":
+				# check to see if tile is gray - without doing this, the level lags because it is rebuilt every step
+				if COLOR != "gray":
+					CURRENT_LEVEL[CELL.y][CELL.x] = "10"
+					tile_spawn(CELL.x,CELL.y,"10")
+			if GAME_MODE == "puzzle":
+				if COLOR != "gray":
+					CURRENT_LEVEL[CELL.y][CELL.x] = str(str(CELL_DATA).left(1),0)
+					tile_spawn(CELL.x,CELL.y,str(str(CELL_DATA).left(1),0))
+		"camera_switch":
+			if DYNAMIC_CAM == "true":
+				DYNAMIC_CAM = "false"
+			else:
+				DYNAMIC_CAM = "true"
+		"key":
+			if KEY_COUNT < 1:
+				reset_keys()
+				KEY_COUNT = 0
+			KEY_COUNT += 1
+			if GAME_MODE == "puzzle":
+				CURRENT_LEVEL[CELL.y][CELL.x] = str(str(CELL_DATA).left(1),0)
+				tile_spawn(CELL.x,CELL.y,str(str(CELL_DATA).left(1),0))
+			if GAME_MODE == "classic":
+				CURRENT_LEVEL[CELL.y][CELL.x] = "10"
+				tile_spawn(CELL.x,CELL.y,"10")
+			debug_message("cube_3d.gd - fake_roll() - KEY_COUNT",KEY_COUNT,1)
+		"box":
+			if KEY_COUNT < 1:
+				return
+			var NODE_NAME = str("/root/hmls/VIEW_3D/",CELL.x,"x",CELL.y,"_box")
+			KEY_COUNT -= 1
+			if is_instance_valid(get_node(NODE_NAME)):
+				if ENABLE_JANK == true:
+					var tween2 = create_tween()
+					tween2.tween_property(get_node(NODE_NAME),"scale",Vector3(0,0,0), 0.3)
+					#await tween2.finished
+				get_node(NODE_NAME).queue_free()
+			match GAME_MODE:
+				"classic":
+					CURRENT_LEVEL[CELL.y][CELL.x] = "10"
+					tile_spawn(CELL.x,CELL.y,"10")
+				"puzzle":
+					CURRENT_LEVEL[CELL.y][CELL.x] = str(str(CELL_DATA).left(1),0)
+					tile_spawn(CELL.x, CELL.y, str(str(CELL_DATA).left(1),0))
 
 func _ready():
 	DisplayServer.window_set_title(get_default("WINDOW_TITLE"))
