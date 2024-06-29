@@ -23,7 +23,7 @@ func _process(delta):
 	else:
 		var CAM = Vector3()
 		# this will center the cam to the width of the level matrix
-		CAM.x = (hmls.LEVEL_RESOLUTION.x / 2) - 0.5
+		CAM.x = (hmls.LEVEL_RESOLUTION.x / 2)
 		CAM.y = ((hmls.LEVEL_RESOLUTION.y + hmls.LEVEL_RESOLUTION.x) / 2) + 2
 		#CAM.y = CAM.x * 1.9
 		CAM.z = (hmls.LEVEL_RESOLUTION.y) * 1.3

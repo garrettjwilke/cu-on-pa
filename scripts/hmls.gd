@@ -117,6 +117,8 @@ func get_default(setting):
 			return DEFAULTS.COLOR_YELLOW
 		"COLOR_BLACK":
 			return DEFAULTS.COLOR_BLACK
+		"COLOR_FLOOR":
+			return DEFAULTS.COLOR_FLOOR
 		"GAME_MODE":
 			return DEFAULTS.GAME_MODE
 
@@ -167,6 +169,7 @@ func get_cell_data(cell):
 	# the json file has numbers that represent the colors/attributes listed here
 	# placing the sequence [1,2,3,4] will output the following colors:
 	# # gray, blue, red, green
+	# we set them as an int to filter out any ascii or other stuff
 	match int(str(cell).left(1)):
 		0:
 			COLOR = "null"
@@ -207,20 +210,21 @@ func get_cell_data(cell):
 			COLOR = "null"
 			NAME = "null"
 	# set attributes to tiles from 2nd number in cell
-	match str(cell).right(1):
-		"0":
+	# we set them as an int to filter out any ascii or other stuff
+	match int(str(cell).right(1)):
+		0:
 			ATTRIBUTE = "default"
-		"1":
+		1:
 			ATTRIBUTE = "bomb"
-		"2":
+		2:
 			ATTRIBUTE = "box"
-		"3":
+		3:
 			ATTRIBUTE = "key"
-		"7":
+		7:
 			ATTRIBUTE = "unspawnable"
-		"8":
+		8:
 			ATTRIBUTE = "camera_switch"
-		"9":
+		9:
 			ATTRIBUTE = "start_position"
 		_:
 			ATTRIBUTE = "null"
@@ -253,6 +257,18 @@ func scale_thingy(node, speed):
 	tween.tween_property(node,"scale",old_scale, speed)
 	#await tween.finished
 
+func spawn_floor(pos):
+	var COLOR = hmls.get_default("COLOR_FLOOR")
+	var new_mesh = MeshInstance3D.new()
+	new_mesh.position = Vector3(pos.x,-0.05,pos.y)
+	new_mesh.mesh = PlaneMesh.new()
+	new_mesh.mesh.size = Vector2(1,1)
+	var material = StandardMaterial3D.new()
+	material.albedo_color = COLOR
+	new_mesh.mesh.surface_set_material(0, material)
+	get_node("/root/hmls/VIEW_3D").add_child(new_mesh)
+
+
 # this will spawn after the update_tiles() is ran
 func tile_spawn(x, y, cell):
 	# the get_cell_data() returns an array with html color codes and attributes
@@ -282,6 +298,7 @@ func tile_spawn(x, y, cell):
 	var material = StandardMaterial3D.new()
 	material.albedo_color = COLOR
 	CURRENT_TILE.mesh.surface_set_material(0, material)
+	spawn_floor(Vector2(x,y))
 	var TILE_SCALE = 0.85
 	var TILE_HEIGHT = 0.1
 	# WARNING: changing the CURRENT_TILE.name var will break floor_check() function
@@ -331,6 +348,7 @@ func update_tiles(MODE):
 		LEVEL_RESOLUTION = Vector2(0,0)
 		return
 	load_level()
+	
 	# spawn all tiles in LEVEL_MATRIX
 	var x = 0
 	var y = 0

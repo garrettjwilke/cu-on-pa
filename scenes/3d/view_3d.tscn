@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://d0qkbl33uofmb"]
+[gd_scene load_steps=18 format=3 uid="uid://d0qkbl33uofmb"]
 
 [ext_resource type="Script" path="res://scripts/view_3d.gd" id="1_wpaoh"]
 [ext_resource type="PackedScene" uid="uid://c5a2v6m2bufp0" path="res://scenes/3d/cube_3d.tscn" id="2_x1n4d"]
@@ -79,6 +79,15 @@ material = SubResource("ShaderMaterial_7451y")
 size = Vector2(512, 512)
 center_offset = Vector3(0.5, -0.1, 0.5)
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gc3uf"]
+albedo_color = Color(0, 0.419608, 0.0666667, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_iidm3"]
+material = SubResource("StandardMaterial3D_gc3uf")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_l0mnd"]
+size = Vector2(1, 1)
+
 [node name="view_3d" type="Node3D"]
 rotation_order = 0
 script = ExtResource("1_wpaoh")
@@ -125,3 +134,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.08165e-12, 2.08165e-12, 2.0
 [node name="grid" type="MeshInstance3D" parent="."]
 visible = false
 mesh = SubResource("PlaneMesh_bv4is")
+
+[node name="grass" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, -1, -0.1, -1)
+mesh = SubResource("PlaneMesh_iidm3")
+
+[node name="floor" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.08165e-12, -0.1, 2.08165e-12)
+visible = false
+mesh = SubResource("PlaneMesh_l0mnd")

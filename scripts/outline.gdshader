@@ -34,6 +34,7 @@ render_mode unshaded, blend_mix, depth_draw_never, depth_test_disabled;
 
 group_uniforms outline;
 uniform vec4 outlineColor: source_color = vec4(0.0, 0.0, 0.0, 1.0);
+//uniform vec4 outlineColor: source_color = vec4(1.0,1.0,1.0,1.0);
 uniform float depth_threshold = 0.025;
 uniform float normal_threshold : hint_range(0.0, 1.5) = 0.5;
 uniform float normal_smoothing : hint_range(0.0, 1.0) = 0.25;
