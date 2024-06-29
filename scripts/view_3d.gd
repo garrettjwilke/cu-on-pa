@@ -14,6 +14,10 @@ func _ready():
 
 func _process(delta):
 	if hmls.DYNAMIC_CAM == "true":
+		if Input.is_action_just_pressed("CAM_ROTATE_LEFT"):
+			print("figure out how to rotate properly")
+		if Input.is_action_just_pressed("CAM_ROTATE_RIGHT"):
+			print("figure out how to rotate properly")
 		$Camera3D.position = lerp($Camera3D.position, $Cube.position + cam_offset, cam_speed * delta)
 		$Camera3D.rotation = lerp($Camera3D.rotation, Vector3(-1,0,0), cam_speed * delta)
 	else:
