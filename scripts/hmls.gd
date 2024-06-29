@@ -52,8 +52,6 @@ func debug_message(INFO, MESSAGE, SEVERITY):
 var LEVEL_MATRIX = []
 # other parts of the game need to know the dimensions of the level. this is added up as we spawn tiles
 var LEVEL_RESOLUTION = Vector2(0,0)
-# every time a tile is spawned, this NODE_COUNTER goes up
-#var NODE_COUNTER = 0
 
 # round number up/down
 func round_to_dec(num):
@@ -81,9 +79,6 @@ func floor_check(pos_x, pos_y):
 	# if cube passes check, get the color of the next tile it is rolling into
 	NEXT_COLOR = LEVEL_MATRIX[pos_y][pos_x]
 	#print(NEXT_COLOR)
-	# if the next color is a 00 (ZZ) then stop
-	#if str(NEXT_COLOR) == "ZZ":
-	#	return "stop"
 	return NEXT_COLOR
 
 # pass a string through the get_default() function and get the default from data/defaults.json
@@ -248,6 +243,7 @@ func spawn_key(COLOR,node_name):
 	var new_material = material.duplicate()
 	new_material.albedo_color = COLOR
 	get_node(str("/root/hmls/VIEW_3D/",node_name)).mesh.surface_set_material(0, new_material)
+	#get_node(str("/root/hmls/VIEW_3D/",node_name)).name = str(node_name,"_key")
 
 func scale_thingy(node, speed):
 	var old_scale = node.scale
@@ -260,7 +256,8 @@ func scale_thingy(node, speed):
 func spawn_floor(pos):
 	var COLOR = hmls.get_default("COLOR_FLOOR")
 	var new_mesh = MeshInstance3D.new()
-	new_mesh.position = Vector3(pos.x,-0.05,pos.y)
+	new_mesh.name = str(pos.x,"x",pos.y,"_floor")
+	new_mesh.position = Vector3(pos.x,-0.1,pos.y)
 	new_mesh.mesh = PlaneMesh.new()
 	new_mesh.mesh.size = Vector2(1,1)
 	var material = StandardMaterial3D.new()
@@ -426,7 +423,7 @@ func attribute_stuffs(CELL):
 				if ENABLE_JANK == true:
 					var tween2 = create_tween()
 					tween2.tween_property(get_node(NODE_NAME),"scale",Vector3(0,0,0), 0.3)
-					#await tween2.finished
+					await tween2.finished
 				get_node(NODE_NAME).queue_free()
 			match GAME_MODE:
 				"classic":

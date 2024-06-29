@@ -13,7 +13,7 @@
 	"COLOR_YELLOW" : "#f5f10b",
 	"COLOR_PURPLE" : "#ff00ca",
 	"COLOR_ORANGE" : "#fd7d01",
-	"COLOR_FLOOR" : "#000000",
+	"COLOR_FLOOR" : "#8c8371",
 	"LEVEL_MATRIX" : [
 		["00","10","20","30","40","50","60","70","80","90"],
 		["00"],
@@ -23,7 +23,7 @@
 		["10","10","10","10","10"],
 		["10","10","19","10","10"],
 		["10","10","10","10","10"],
-		["10","10","10","10","10"],
+		["43","53","73","23","43"],
 		],
 	"comment": [
 		"WARNING: any of the YELLOW text below does not actually affect the game
