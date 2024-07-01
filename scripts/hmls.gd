@@ -427,9 +427,11 @@ func attribute_stuffs(CELL):
 			if is_instance_valid(get_node(NODE_NAME)):
 				if ENABLE_JANK == "true":
 					var tween2 = create_tween()
-					tween2.tween_property(get_node(NODE_NAME),"scale",Vector3(0,0,0), 0.3)
+					tween2.tween_property(get_node(NODE_NAME),"scale",Vector3(0,0,0), 0.2)
 					await tween2.finished
-				get_node(NODE_NAME).queue_free()
+					get_node(NODE_NAME).queue_free()
+				else:
+					get_node(NODE_NAME).queue_free()
 			match GAME_MODE:
 				"classic":
 					CURRENT_LEVEL[CELL.y][CELL.x] = "10"
@@ -441,5 +443,15 @@ func attribute_stuffs(CELL):
 func _ready():
 	DisplayServer.window_set_title(get_default("WINDOW_TITLE"))
 	DisplayServer.window_set_size(get_default("RESOLUTION"))
+	DisplayServer.window_set_mode(0)
 	update_level(1)
 
+func _process(_delta):
+	if PAUSE:
+		if Input.is_action_just_pressed("fullscreen_toggle"):
+			if DisplayServer.window_get_mode(0) == 2:
+				DisplayServer.window_set_mode(0)
+				#DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED) 
+			elif DisplayServer.window_get_mode(0) == 0:
+				DisplayServer.window_set_mode(2)
+				#DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN) 

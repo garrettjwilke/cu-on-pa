@@ -41,8 +41,8 @@ func rotate_view(input):
 			cam_offset = Vector3(2, 8, 5)
 			cam_rotation.y = 0
 
-var original_translate
 func _ready():
+	hmls.PAUSE = false
 	rotate_view(0)
 	hmls.update_tiles("3d")
 	# after updating the level tiles, set the cube position

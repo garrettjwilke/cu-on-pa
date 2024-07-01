@@ -3,6 +3,8 @@ extends Node2D
 @onready var KEYBINDS_NODE = $Control/CenterContainer/keybinds_label
 
 var KEYBINDS_TEXT = "------    Keybinds:    ------
+Fullscreen Toggle: F
+  - for some reason it requires you to press it twice
 Regenerate RNG: R
 Load Next Level: N
 Load Previous Level: B
