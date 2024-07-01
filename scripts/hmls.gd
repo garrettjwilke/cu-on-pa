@@ -4,7 +4,9 @@ var DEBUG = false
 # setting DEBUG_SEVERITY can help isolate debug messages
 #   setting to 0 will show all debug messages
 var DEBUG_SEVERITY = 0
+
 var START_POSITION = Vector2(0,0)
+var GAME_DIFFICULTY = get_default("GAME_DIFFICULTY")
 
 var DYNAMIC_CAM = "true"
 var ROTATION_COUNT = 1

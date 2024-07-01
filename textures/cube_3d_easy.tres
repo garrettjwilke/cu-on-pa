@@ -1,0 +1,8 @@
+[gd_resource type="StandardMaterial3D" load_steps=2 format=3 uid="uid://b0vl6f5j0obax"]
+
+[ext_resource type="Texture2D" uid="uid://xn6yw4v7ocep" path="res://textures/cube_easy.png" id="1_ufuom"]
+
+[resource]
+shading_mode = 2
+albedo_texture = ExtResource("1_ufuom")
+texture_filter = 0

@@ -1,7 +1,7 @@
 {
 	"WINDOW_TITLE" : "Cu-On-Pa",
 	"RESOLUTION" : [1280,720],
-	"GAME_DIFFICULTY" : "hard",
+	"GAME_DIFFICULTY" : "normal",
 	"comment": "the options for GAME_MODE are: classic, puzzle, quest",
 	"GAME_MODE" : "classic",
 	"RNG_SEED" : "cu-on-pa rng test seed",

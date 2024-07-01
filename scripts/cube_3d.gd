@@ -11,6 +11,14 @@ var CURRENT_ORIENTATION_COLOR
 var FUTURE_ORIENTATION = Vector3(0,0,0)
 var FUTURE_ORIENTATION_COLOR
 
+func set_cube_material():
+	if hmls.GAME_DIFFICULTY == "normal":
+		var material = load("res://textures/cube_3d_easy.tres")
+		mesh.set_surface_override_material(0, material)
+	elif hmls.GAME_DIFFICULTY == "hard":
+		var material = load("res://textures/cube_3d_hard.tres")
+		mesh.set_surface_override_material(0, material)
+
 # the input passed through to match_orientation is a Vector3 with xyz containting a Vector3
 func match_orientation(input):
 	var RETURN_COLOR = "null"
@@ -131,6 +139,7 @@ func reset_pos():
 	mesh.rotation_degrees = Vector3(0,0,0)
 
 func _ready():
+	set_cube_material()
 	hmls.KEY_COUNT = 0
 	position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
 	hmls.update_cube_position(Vector2(position.x,position.z))
