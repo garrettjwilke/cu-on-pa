@@ -112,7 +112,6 @@ surface_material_override/0 = SubResource("ShaderMaterial_dd6dy")
 
 [node name="shader_outline" type="MeshInstance3D" parent="Camera3D"]
 transform = Transform3D(1, 0, 0, 0, 1, -1.30556e-08, 0, -4.03013e-08, 1, 0, 0.107011, -0.399371)
-visible = false
 mesh = SubResource("QuadMesh_khw4b")
 
 [node name="Cube" parent="." instance=ExtResource("2_x1n4d")]

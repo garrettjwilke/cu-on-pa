@@ -1,20 +1,21 @@
 extends Node3D
+@onready var CAMERA_NODE = $Camera3D
 
 var cam_offset = Vector3(2, 8, 5)
-var cam_rotation = Vector3(-55,0,0)
+var cam_rotation = Vector3(-60,0,0)
 var static_cam_offset = Vector3(0,0,0)
-var cam_speed = 3
+var cam_speed = 4
 
 func rotate_view(input):
 	hmls.ROTATION_COUNT += input
 	if hmls.ROTATION_COUNT > 4:
-		if hmls.ENABLE_JANK == true:
+		if hmls.ENABLE_JANK == "true":
 			hmls.ROTATION_COUNT = 1
 		else:
 			input = 0
 			hmls.ROTATION_COUNT = 4
 	if hmls.ROTATION_COUNT < 1:
-		if hmls.ENABLE_JANK == true:
+		if hmls.ENABLE_JANK == "true":
 			hmls.ROTATION_COUNT = 4
 		else:
 			input = 0
@@ -25,20 +26,22 @@ func rotate_view(input):
 	elif input == -1:
 		ROTATION_DEGREES = -90
 	cam_rotation.y += ROTATION_DEGREES
+	cam_rotation.z = -2
 	match hmls.ROTATION_COUNT:
 		1:
-			cam_offset = Vector3(2, 8, 5)
+			cam_offset = Vector3(2.6, 8, 5)
 		2:
-			cam_offset = Vector3(5, 8, -2)
+			cam_offset = Vector3(5, 8, -2.6)
 		3:
-			cam_offset = Vector3(-2, 8, -5)
+			cam_offset = Vector3(-2.6, 8, -5)
 		4:
-			cam_offset = Vector3(-5, 8, 2)
+			cam_offset = Vector3(-5, 8, 2.6)
 		_:
 			hmls.ROTATION_COUNT = 1
 			cam_offset = Vector3(2, 8, 5)
 			cam_rotation.y = 0
 
+var original_translate
 func _ready():
 	rotate_view(0)
 	hmls.update_tiles("3d")
@@ -48,15 +51,15 @@ func _ready():
 	hmls.update_cube_position(Vector2(CUBE.position.x, CUBE.position.z))
 
 func _process(delta):
+	if hmls.PAUSE:
+		return
 	if hmls.DYNAMIC_CAM == "true":
 		if Input.is_action_just_pressed("CAM_ROTATE_LEFT"):
 			rotate_view(-1)
-			print($Camera3D.global_transform.basis)
 		if Input.is_action_just_pressed("CAM_ROTATE_RIGHT"):
 			rotate_view(1)
 		$Camera3D.position = lerp($Camera3D.position, $Cube.position + cam_offset, cam_speed * delta)
-		$Camera3D.rotation_degrees = await lerp($Camera3D.rotation_degrees, cam_rotation, cam_speed * delta)
-		#print($Camera3D.global_transform.basis)
+		$Camera3D.rotation_degrees = lerp($Camera3D.rotation_degrees, cam_rotation, cam_speed * delta)
 	else:
 		var CAM = Vector3()
 		# this will center the cam to the width of the level matrix

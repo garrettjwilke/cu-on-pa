@@ -46,4 +46,5 @@
 		x8: sets the dynamic camera on/off
 		x9: sets the player spawn point. (if there are multiple spawn points in a livel, the last one will be used.)"
 		],
+	"ENABLE_JANK": "false",
 }

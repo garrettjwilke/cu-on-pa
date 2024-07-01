@@ -2,7 +2,11 @@
 
 TODO:
 
-* fix camera
+* add 2d menu items
+
+* add level ending rules
+
+* create animations for cube entering/exiting level
 
 * add bombs
 

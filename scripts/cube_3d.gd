@@ -138,6 +138,8 @@ func _ready():
 var ORIGINAL_SPEED = speed
 # sloppy input management
 func _physics_process(_delta):
+	if hmls.PAUSE:
+		return
 	speed = ORIGINAL_SPEED
 	if Input.is_action_pressed("hmls_shift"):
 		speed = speed * 2

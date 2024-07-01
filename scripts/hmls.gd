@@ -12,7 +12,6 @@ var ROTATION_COUNT = 1
 var BOX_MESH = preload("res://scenes/3d/block_3d.tscn")
 
 var KEY_COUNT = 0
-
 var KEY_BLANK = 0
 var KEY_RED = 0
 var KEY_GREEN = 0
@@ -33,7 +32,9 @@ func reset_keys():
 # this is set after the level matrix has been loaded
 var CURRENT_LEVEL = []
 
-var ENABLE_JANK = false
+var ENABLE_JANK = get_default("ENABLE_JANK")
+
+var PAUSE = true
 
 # when calling debug message, you need to set a severity
 # if the DEBUG_SEVERITY is set to 0, it will display all debug messages
@@ -117,6 +118,8 @@ func get_default(setting):
 			return DEFAULTS.COLOR_FLOOR
 		"GAME_MODE":
 			return DEFAULTS.GAME_MODE
+		"ENABLE_JANK":
+			return DEFAULTS.ENABLE_JANK
 
 var GAME_MODE = get_default("GAME_MODE")
 
@@ -236,7 +239,7 @@ func spawn_box(x, y, COLOR):
 	new_material.albedo_color = COLOR
 	get_node("/root/hmls/VIEW_3D/").add_child(NEW_BOX)
 	get_node(str("/root/hmls/VIEW_3D/",NEW_BOX.name,"/MeshInstance3D")).mesh.surface_set_material(0, new_material)
-	if ENABLE_JANK:
+	if ENABLE_JANK == "true":
 		scale_thingy(NEW_BOX,0.3)
 
 func spawn_key(COLOR,node_name):
@@ -335,7 +338,8 @@ func load_level():
 		else:
 			GAME_MODE = get_default("GAME_MODE")
 		if level_data.has("DYNAMIC_CAM"):
-			DYNAMIC_CAM = level_data.DYNAMIC_CAM
+			debug_message("hmls.gd - load_level()","loading dynamic cam on level load disabled.",1)
+			#DYNAMIC_CAM = level_data.DYNAMIC_CAM
 
 # this is the first function to run to spawn tiles
 func update_tiles(MODE):
@@ -421,7 +425,7 @@ func attribute_stuffs(CELL):
 			var NODE_NAME = str("/root/hmls/VIEW_3D/",CELL.x,"x",CELL.y,"_box")
 			KEY_COUNT -= 1
 			if is_instance_valid(get_node(NODE_NAME)):
-				if ENABLE_JANK == true:
+				if ENABLE_JANK == "true":
 					var tween2 = create_tween()
 					tween2.tween_property(get_node(NODE_NAME),"scale",Vector3(0,0,0), 0.3)
 					await tween2.finished
