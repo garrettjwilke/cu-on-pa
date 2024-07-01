@@ -7,6 +7,7 @@ var DEBUG_SEVERITY = 0
 var START_POSITION = Vector2(0,0)
 
 var DYNAMIC_CAM = "true"
+var ROTATION_COUNT = 1
 
 var BOX_MESH = preload("res://scenes/3d/block_3d.tscn")
 
@@ -52,8 +53,6 @@ func debug_message(INFO, MESSAGE, SEVERITY):
 var LEVEL_MATRIX = []
 # other parts of the game need to know the dimensions of the level. this is added up as we spawn tiles
 var LEVEL_RESOLUTION = Vector2(0,0)
-# every time a tile is spawned, this NODE_COUNTER goes up
-#var NODE_COUNTER = 0
 
 # round number up/down
 func round_to_dec(num):
@@ -81,9 +80,6 @@ func floor_check(pos_x, pos_y):
 	# if cube passes check, get the color of the next tile it is rolling into
 	NEXT_COLOR = LEVEL_MATRIX[pos_y][pos_x]
 	#print(NEXT_COLOR)
-	# if the next color is a 00 (ZZ) then stop
-	#if str(NEXT_COLOR) == "ZZ":
-	#	return "stop"
 	return NEXT_COLOR
 
 # pass a string through the get_default() function and get the default from data/defaults.json
@@ -117,6 +113,8 @@ func get_default(setting):
 			return DEFAULTS.COLOR_YELLOW
 		"COLOR_BLACK":
 			return DEFAULTS.COLOR_BLACK
+		"COLOR_FLOOR":
+			return DEFAULTS.COLOR_FLOOR
 		"GAME_MODE":
 			return DEFAULTS.GAME_MODE
 
@@ -167,6 +165,7 @@ func get_cell_data(cell):
 	# the json file has numbers that represent the colors/attributes listed here
 	# placing the sequence [1,2,3,4] will output the following colors:
 	# # gray, blue, red, green
+	# we set them as an int to filter out any ascii or other stuff
 	match int(str(cell).left(1)):
 		0:
 			COLOR = "null"
@@ -207,20 +206,21 @@ func get_cell_data(cell):
 			COLOR = "null"
 			NAME = "null"
 	# set attributes to tiles from 2nd number in cell
-	match str(cell).right(1):
-		"0":
+	# we set them as an int to filter out any ascii or other stuff
+	match int(str(cell).right(1)):
+		0:
 			ATTRIBUTE = "default"
-		"1":
+		1:
 			ATTRIBUTE = "bomb"
-		"2":
+		2:
 			ATTRIBUTE = "box"
-		"3":
+		3:
 			ATTRIBUTE = "key"
-		"7":
+		7:
 			ATTRIBUTE = "unspawnable"
-		"8":
+		8:
 			ATTRIBUTE = "camera_switch"
-		"9":
+		9:
 			ATTRIBUTE = "start_position"
 		_:
 			ATTRIBUTE = "null"
@@ -244,6 +244,7 @@ func spawn_key(COLOR,node_name):
 	var new_material = material.duplicate()
 	new_material.albedo_color = COLOR
 	get_node(str("/root/hmls/VIEW_3D/",node_name)).mesh.surface_set_material(0, new_material)
+	#get_node(str("/root/hmls/VIEW_3D/",node_name)).name = str(node_name,"_key")
 
 func scale_thingy(node, speed):
 	var old_scale = node.scale
@@ -252,6 +253,19 @@ func scale_thingy(node, speed):
 	var tween = create_tween().set_ease(Tween.EASE_OUT_IN)
 	tween.tween_property(node,"scale",old_scale, speed)
 	#await tween.finished
+
+func spawn_floor(pos):
+	var COLOR = hmls.get_default("COLOR_FLOOR")
+	var new_mesh = MeshInstance3D.new()
+	new_mesh.name = str(pos.x,"x",pos.y,"_floor")
+	new_mesh.position = Vector3(pos.x,-0.1,pos.y)
+	new_mesh.mesh = PlaneMesh.new()
+	new_mesh.mesh.size = Vector2(1,1)
+	var material = StandardMaterial3D.new()
+	material.albedo_color = COLOR
+	new_mesh.mesh.surface_set_material(0, material)
+	get_node("/root/hmls/VIEW_3D").add_child(new_mesh)
+
 
 # this will spawn after the update_tiles() is ran
 func tile_spawn(x, y, cell):
@@ -282,6 +296,7 @@ func tile_spawn(x, y, cell):
 	var material = StandardMaterial3D.new()
 	material.albedo_color = COLOR
 	CURRENT_TILE.mesh.surface_set_material(0, material)
+	spawn_floor(Vector2(x,y))
 	var TILE_SCALE = 0.85
 	var TILE_HEIGHT = 0.1
 	# WARNING: changing the CURRENT_TILE.name var will break floor_check() function
@@ -331,6 +346,7 @@ func update_tiles(MODE):
 		LEVEL_RESOLUTION = Vector2(0,0)
 		return
 	load_level()
+	
 	# spawn all tiles in LEVEL_MATRIX
 	var x = 0
 	var y = 0
@@ -408,7 +424,7 @@ func attribute_stuffs(CELL):
 				if ENABLE_JANK == true:
 					var tween2 = create_tween()
 					tween2.tween_property(get_node(NODE_NAME),"scale",Vector3(0,0,0), 0.3)
-					#await tween2.finished
+					await tween2.finished
 				get_node(NODE_NAME).queue_free()
 			match GAME_MODE:
 				"classic":

@@ -4,10 +4,11 @@ render_mode unshaded;
 // Parameters
 uniform float zNear = 0.05; 
 uniform float zFar = 100;  
-uniform float outlineThickness = 2.0; 
+uniform float outlineThickness = 1.0; 
 uniform vec3 outlineColor : source_color = vec3(0.0);
-uniform float wiggleFrequency = 0.08; 
-uniform float wiggleAmplitude = 2;
+//uniform float wiggleFrequency = 0.08;
+uniform float wiggleFrequency = 2; 
+uniform float wiggleAmplitude = 0.2;
 
 uniform sampler2D DEPTH_TEXTURE : hint_depth_texture, filter_linear_mipmap;
 uniform sampler2D SCREEN_TEXTURE : hint_screen_texture, filter_linear_mipmap;
@@ -140,7 +141,7 @@ void fragment() {
 	// Light Dark
 	if (pixelLuma <= 0.80) {
     if (mod((uv.x + displ.x) * VIEWPORT_SIZE.y + (uv.y + displ.y) * VIEWPORT_SIZE.x, 30) <= 3.0) {
-			pixelColor = mix(pixelColor, outlineColor, 0.5);
+			pixelColor = mix(pixelColor, outlineColor, 0.2);
 		}
 	}
 	// Edge detection using depth buffer

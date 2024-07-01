@@ -46,11 +46,11 @@ func fake_roll(dir):
 	FAKE_MESH.name = "INVISIBLE_CUBE"
 	FAKE_PIVOT.add_child(FAKE_MESH)
 	# set the properties from the original mesh and pivot
-	#FAKE_MESH.position = mesh.position
+	FAKE_MESH.position = mesh.position
 	FAKE_MESH.global_transform.basis = mesh.global_transform.basis
 	FAKE_MESH.rotation_degrees = hmls.round_vect3(mesh.rotation_degrees)
 	# do the stuffs to make the fake pivot move
-	FAKE_PIVOT.translate(dir * cube_size / 2)
+	#FAKE_PIVOT.translate(dir * cube_size / 2)
 	FAKE_MESH.global_translate(-dir * cube_size / 2)
 	var axis = dir.cross(Vector3.DOWN)
 	var tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
@@ -76,7 +76,7 @@ func fake_roll(dir):
 	rolling = false
 	# if the color of the tile we are trying to move into is the same as what our cube will be
 	if FUTURE_ORIENTATION_COLOR == CHECK_TILE[1]:
-		hmls.attribute_stuffs(CELL)
+		#hmls.attribute_stuffs(CELL)
 		return "true"
 		#CAN_ROLL = "true"
 	else:
@@ -125,6 +125,11 @@ func roll(dir):
 	rolling = false
 	hmls.update_cube_position(Vector2(int(position.x), int(position.z)))
 
+func reset_pos():
+	position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
+	hmls.update_cube_position(Vector2(position.x,position.z))
+	mesh.rotation_degrees = Vector3(0,0,0)
+
 func _ready():
 	hmls.KEY_COUNT = 0
 	position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
@@ -138,13 +143,57 @@ func _physics_process(_delta):
 		speed = speed * 2
 	var DIR = Vector3.ZERO
 	if Input.is_action_pressed("forward"):
-		DIR = Vector3.FORWARD
+		if hmls.DYNAMIC_CAM == "true":
+			match hmls.ROTATION_COUNT:
+				1:
+					DIR = Vector3.FORWARD
+				2:
+					DIR = Vector3.LEFT
+				3:
+					DIR = Vector3.BACK
+				4:
+					DIR = Vector3.RIGHT
+		else:
+			DIR = Vector3.FORWARD
 	if Input.is_action_pressed("back"):
-		DIR = Vector3.BACK
+		if hmls.DYNAMIC_CAM == "true":
+			match hmls.ROTATION_COUNT:
+				1:
+					DIR = Vector3.BACK
+				2:
+					DIR = Vector3.RIGHT
+				3:
+					DIR = Vector3.FORWARD
+				4:
+					DIR = Vector3.LEFT
+		else:
+			DIR = Vector3.BACK
 	if Input.is_action_pressed("right"):
-		DIR = Vector3.RIGHT
+		if hmls.DYNAMIC_CAM == "true":
+			match hmls.ROTATION_COUNT:
+				1:
+					DIR = Vector3.RIGHT
+				2:
+					DIR = Vector3.FORWARD
+				3:
+					DIR = Vector3.LEFT
+				4:
+					DIR = Vector3.BACK
+		else:
+			DIR = Vector3.RIGHT
 	if Input.is_action_pressed("left"):
-		DIR = Vector3.LEFT
+		if hmls.DYNAMIC_CAM == "true":
+			match hmls.ROTATION_COUNT:
+				1:
+					DIR = Vector3.LEFT
+				2:
+					DIR = Vector3.BACK
+				3:
+					DIR = Vector3.RIGHT
+				4:
+					DIR = Vector3.FORWARD
+		else:
+			DIR = Vector3.LEFT
 	if DIR != Vector3.ZERO:
 		match str(hmls.floor_check(hmls.CUBE_POSITION.x + DIR.x, hmls.CUBE_POSITION.y + DIR.z)):
 			"stop":
@@ -153,6 +202,7 @@ func _physics_process(_delta):
 		#await fake_roll(DIR)
 		if CAN_ROLL == "false":
 			return
+		hmls.attribute_stuffs(Vector2(hmls.CUBE_POSITION.x + DIR.x, hmls.CUBE_POSITION.y + DIR.z))
 		roll(DIR)
 	if Input.is_action_just_pressed("reset"):
 		# uncomment the line below to force the RNG to be the same each reset
@@ -160,24 +210,16 @@ func _physics_process(_delta):
 		hmls.debug_message("cube_3d.gd", "reset button pressed", 1)
 		hmls.update_tiles("reset")
 		hmls.update_tiles("3d")
-		position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
-		hmls.update_cube_position(Vector2(position.x,position.z))
-		mesh.rotation_degrees = Vector3(0,0,0)
+		reset_pos()
 	if Input.is_action_just_pressed("level_next"):
 		hmls.update_level(1)
 		hmls.update_tiles("reset")
 		hmls.update_tiles("3d")
 		# set the position and then pass position to hmls.update_cube_position
 		# if we don't do this, the cube can end up on a bad tile
-		position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
-		hmls.update_cube_position(Vector2(position.x,position.z))
-		mesh.rotation_degrees = Vector3(0,0,0)
+		reset_pos()
 	if Input.is_action_just_pressed("level_previous"):
 		hmls.update_level(-1)
 		hmls.update_tiles("reset")
 		hmls.update_tiles("3d")
-		# set the position and then pass position to hmls.update_cube_position
-		# if we don't do this, the cube can end up on a bad tile
-		position = Vector3(hmls.START_POSITION.x,0,hmls.START_POSITION.y)
-		hmls.update_cube_position(Vector2(position.x,position.z))
-		mesh.rotation_degrees = Vector3(0,0,0)
+		reset_pos()
