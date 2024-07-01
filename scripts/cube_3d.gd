@@ -143,13 +143,57 @@ func _physics_process(_delta):
 		speed = speed * 2
 	var DIR = Vector3.ZERO
 	if Input.is_action_pressed("forward"):
-		DIR = Vector3.FORWARD
+		if hmls.DYNAMIC_CAM == "true":
+			match hmls.ROTATION_COUNT:
+				1:
+					DIR = Vector3.FORWARD
+				2:
+					DIR = Vector3.LEFT
+				3:
+					DIR = Vector3.BACK
+				4:
+					DIR = Vector3.RIGHT
+		else:
+			DIR = Vector3.FORWARD
 	if Input.is_action_pressed("back"):
-		DIR = Vector3.BACK
+		if hmls.DYNAMIC_CAM == "true":
+			match hmls.ROTATION_COUNT:
+				1:
+					DIR = Vector3.BACK
+				2:
+					DIR = Vector3.RIGHT
+				3:
+					DIR = Vector3.FORWARD
+				4:
+					DIR = Vector3.LEFT
+		else:
+			DIR = Vector3.BACK
 	if Input.is_action_pressed("right"):
-		DIR = Vector3.RIGHT
+		if hmls.DYNAMIC_CAM == "true":
+			match hmls.ROTATION_COUNT:
+				1:
+					DIR = Vector3.RIGHT
+				2:
+					DIR = Vector3.FORWARD
+				3:
+					DIR = Vector3.LEFT
+				4:
+					DIR = Vector3.BACK
+		else:
+			DIR = Vector3.RIGHT
 	if Input.is_action_pressed("left"):
-		DIR = Vector3.LEFT
+		if hmls.DYNAMIC_CAM == "true":
+			match hmls.ROTATION_COUNT:
+				1:
+					DIR = Vector3.LEFT
+				2:
+					DIR = Vector3.BACK
+				3:
+					DIR = Vector3.RIGHT
+				4:
+					DIR = Vector3.FORWARD
+		else:
+			DIR = Vector3.LEFT
 	if DIR != Vector3.ZERO:
 		match str(hmls.floor_check(hmls.CUBE_POSITION.x + DIR.x, hmls.CUBE_POSITION.y + DIR.z)):
 			"stop":

@@ -40,7 +40,7 @@ uniform float normal_threshold : hint_range(0.0, 1.5) = 0.5;
 uniform float normal_smoothing : hint_range(0.0, 1.0) = 0.25;
 
 group_uniforms thickness;
-uniform float max_thickness: hint_range(0.0, 5.0) = 2.3;
+uniform float max_thickness: hint_range(0.0, 5.0) = 0.9;
 uniform float min_thickness = 0.5;
 uniform float max_distance = 75.0;
 uniform float min_distance = 2.0;

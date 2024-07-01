@@ -29,10 +29,10 @@ render_priority = 0
 shader = ExtResource("5_hvqdt")
 shader_parameter/zNear = 0.05
 shader_parameter/zFar = 100.0
-shader_parameter/outlineThickness = 1.5
+shader_parameter/outlineThickness = 1.0
 shader_parameter/outlineColor = Color(0, 0, 0, 1)
-shader_parameter/wiggleFrequency = 0.08
-shader_parameter/wiggleAmplitude = 2.0
+shader_parameter/wiggleFrequency = 2.0
+shader_parameter/wiggleAmplitude = 0.2
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_inbqt"]
 render_priority = 0
@@ -41,7 +41,7 @@ shader_parameter/outlineColor = Color(0, 0, 0, 1)
 shader_parameter/depth_threshold = 0.025
 shader_parameter/normal_threshold = 0.5
 shader_parameter/normal_smoothing = 0.25
-shader_parameter/max_thickness = 1.3
+shader_parameter/max_thickness = 2.3
 shader_parameter/min_thickness = 0.5
 shader_parameter/max_distance = 75.0
 shader_parameter/min_distance = 2.0
@@ -112,21 +112,8 @@ surface_material_override/0 = SubResource("ShaderMaterial_dd6dy")
 
 [node name="shader_outline" type="MeshInstance3D" parent="Camera3D"]
 transform = Transform3D(1, 0, 0, 0, 1, -1.30556e-08, 0, -4.03013e-08, 1, 0, 0.107011, -0.399371)
+visible = false
 mesh = SubResource("QuadMesh_khw4b")
-
-[node name="Label" type="Label" parent="Camera3D"]
-custom_minimum_size = Vector2(75, 75)
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -170.0
-offset_bottom = 101.0
-grow_horizontal = 0
-text = "------    Keybinds:    ------
-R : Regenerate RNG 
-N : Load Next Level
-B: Load Previous Level
-Enter: Switch Camera View"
 
 [node name="Cube" parent="." instance=ExtResource("2_x1n4d")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.08165e-12, 2.08165e-12, 2.08165e-12)

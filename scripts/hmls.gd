@@ -7,6 +7,7 @@ var DEBUG_SEVERITY = 0
 var START_POSITION = Vector2(0,0)
 
 var DYNAMIC_CAM = "true"
+var ROTATION_COUNT = 1
 
 var BOX_MESH = preload("res://scenes/3d/block_3d.tscn")
 

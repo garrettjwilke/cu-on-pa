@@ -13,7 +13,7 @@
 	"COLOR_YELLOW" : "#f5f10b",
 	"COLOR_PURPLE" : "#ff00ca",
 	"COLOR_ORANGE" : "#fd7d01",
-	"COLOR_FLOOR" : "#8c8371",
+	"COLOR_FLOOR" : "#666666",
 	"LEVEL_MATRIX" : [
 		["00","10","20","30","40","50","60","70","80","90"],
 		["00"],

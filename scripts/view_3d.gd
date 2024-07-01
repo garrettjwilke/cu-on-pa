@@ -1,11 +1,46 @@
 extends Node3D
 
 var cam_offset = Vector3(2, 8, 5)
+var cam_rotation = Vector3(-55,0,0)
 var static_cam_offset = Vector3(0,0,0)
 var cam_speed = 3
 
+func rotate_view(input):
+	hmls.ROTATION_COUNT += input
+	if hmls.ROTATION_COUNT > 4:
+		if hmls.ENABLE_JANK == true:
+			hmls.ROTATION_COUNT = 1
+		else:
+			input = 0
+			hmls.ROTATION_COUNT = 4
+	if hmls.ROTATION_COUNT < 1:
+		if hmls.ENABLE_JANK == true:
+			hmls.ROTATION_COUNT = 4
+		else:
+			input = 0
+			hmls.ROTATION_COUNT = 1
+	var ROTATION_DEGREES = 0
+	if input == 1:
+		ROTATION_DEGREES = 90
+	elif input == -1:
+		ROTATION_DEGREES = -90
+	cam_rotation.y += ROTATION_DEGREES
+	match hmls.ROTATION_COUNT:
+		1:
+			cam_offset = Vector3(2, 8, 5)
+		2:
+			cam_offset = Vector3(5, 8, -2)
+		3:
+			cam_offset = Vector3(-2, 8, -5)
+		4:
+			cam_offset = Vector3(-5, 8, 2)
+		_:
+			hmls.ROTATION_COUNT = 1
+			cam_offset = Vector3(2, 8, 5)
+			cam_rotation.y = 0
+
 func _ready():
-	get_node("Camera3D/Label").add_theme_font_size_override("font_size", 8)
+	rotate_view(0)
 	hmls.update_tiles("3d")
 	# after updating the level tiles, set the cube position
 	var CUBE = get_node("Cube")
@@ -15,11 +50,13 @@ func _ready():
 func _process(delta):
 	if hmls.DYNAMIC_CAM == "true":
 		if Input.is_action_just_pressed("CAM_ROTATE_LEFT"):
-			print("figure out how to rotate properly")
+			rotate_view(-1)
+			print($Camera3D.global_transform.basis)
 		if Input.is_action_just_pressed("CAM_ROTATE_RIGHT"):
-			print("figure out how to rotate properly")
+			rotate_view(1)
 		$Camera3D.position = lerp($Camera3D.position, $Cube.position + cam_offset, cam_speed * delta)
-		$Camera3D.rotation = lerp($Camera3D.rotation, Vector3(-1,0,0), cam_speed * delta)
+		$Camera3D.rotation_degrees = await lerp($Camera3D.rotation_degrees, cam_rotation, cam_speed * delta)
+		#print($Camera3D.global_transform.basis)
 	else:
 		var CAM = Vector3()
 		# this will center the cam to the width of the level matrix
